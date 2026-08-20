@@ -1,10 +1,36 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useLocale } from '@/composables';
 import { SUPPORTED_LOCALES, type LocaleCode } from '@/i18n';
 
 const { currentLocale, setLocale } = useLocale();
+const { locale } = useI18n();
 const isOpen = ref(false);
+
+const chineseLocaleNames: Partial<Record<LocaleCode, string>> = {
+  'en-GB': '英语（英国）',
+  'en-US': '英语（美国）',
+  fr: '法语',
+  es: '西班牙语',
+  de: '德语',
+  it: '意大利语',
+  'pt-BR': '葡萄牙语（巴西）',
+  ja: '日语',
+  'zh-CN': '简体中文',
+  ko: '韩语',
+  ar: '阿拉伯语',
+  hi: '印地语',
+  ru: '俄语',
+  nl: '荷兰语',
+  tr: '土耳其语',
+  pl: '波兰语',
+  sv: '瑞典语',
+};
+
+function localizedName(code: LocaleCode, meta: (typeof SUPPORTED_LOCALES)[LocaleCode]) {
+  return locale.value === 'zh-CN' ? chineseLocaleNames[code] ?? meta.name : meta.name;
+}
 
 function toggleMenu() {
   isOpen.value = !isOpen.value;
@@ -68,9 +94,10 @@ function handleClickOutside(event: MouseEvent) {
       >
         <span class="locale-names">
           <span class="locale-native-name">{{ meta.nativeName }}</span>
-          <span v-if="meta.nativeName !== meta.name" class="locale-english-name">{{
-            meta.name
-          }}</span>
+          <span
+            v-if="meta.nativeName !== localizedName(code as LocaleCode, meta)"
+            class="locale-english-name"
+          >{{ localizedName(code as LocaleCode, meta) }}</span>
         </span>
         <svg
           v-if="currentLocale === code"

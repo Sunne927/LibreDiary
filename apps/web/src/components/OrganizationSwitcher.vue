@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores';
 import { useOrganizationsStore } from '@/stores/organizations';
@@ -9,6 +10,7 @@ import { resolveUploadUrl } from '@/utils/uploadUrl';
 const router = useRouter();
 const authStore = useAuthStore();
 const orgsStore = useOrganizationsStore();
+const { locale } = useI18n();
 
 const isOpen = ref(false);
 
@@ -64,11 +66,11 @@ function getRoleBadgeClass(role: OrgRole): string {
 
 function getRoleLabel(role: OrgRole): string {
   const labels: Record<OrgRole, string> = {
-    OWNER: 'Owner',
-    ADMIN: 'Admin',
-    MEMBER: 'Member',
+    OWNER: locale.value === 'zh-CN' ? '所有者' : 'Owner',
+    ADMIN: locale.value === 'zh-CN' ? '管理员' : 'Admin',
+    MEMBER: locale.value === 'zh-CN' ? '成员' : 'Member',
   };
-  return labels[role] || 'Member';
+  return labels[role] || (locale.value === 'zh-CN' ? '成员' : 'Member');
 }
 
 const currentRole = computed(() => authStore.currentUserRole);
@@ -99,7 +101,7 @@ const currentRole = computed(() => authStore.currentUserRole);
 
       <span class="org-info">
         <span class="org-name">
-          {{ currentOrg?.name ?? 'Select Organization' }}
+          {{ currentOrg?.name ?? (locale === 'zh-CN' ? '选择工作区' : 'Select Organization') }}
           <svg
             v-if="currentOrg?.isEncrypted"
             class="encrypted-icon"
@@ -107,7 +109,7 @@ const currentRole = computed(() => authStore.currentUserRole);
             height="12"
             viewBox="0 0 12 12"
             fill="none"
-            aria-label="Encrypted"
+            aria-label="已加密"
           >
             <rect
               x="2.5"
@@ -189,7 +191,7 @@ const currentRole = computed(() => authStore.currentUserRole);
                   />
                   <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2" />
                 </svg>
-                <span>Settings</span>
+                <span>{{ locale === 'zh-CN' ? '设置' : 'Settings' }}</span>
               </button>
               <button class="dropdown-item" @click="navigateToMembers">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -208,7 +210,7 @@ const currentRole = computed(() => authStore.currentUserRole);
                     stroke-linecap="round"
                   />
                 </svg>
-                <span>Members</span>
+                <span>{{ locale === 'zh-CN' ? '成员' : 'Members' }}</span>
               </button>
               <button class="dropdown-item" @click="navigateToDataPrivacy">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -263,7 +265,7 @@ const currentRole = computed(() => authStore.currentUserRole);
                     height="12"
                     viewBox="0 0 12 12"
                     fill="none"
-                    aria-label="Encrypted"
+                    aria-label="已加密"
                   >
                     <rect
                       x="2.5"

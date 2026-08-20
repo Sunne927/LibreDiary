@@ -16,7 +16,7 @@ const { theme, toggleTheme } = useTheme();
     <button
       type="button"
       class="auth-layout__theme-toggle"
-      :title="`Theme: ${theme}`"
+      :title="$t('a11y.toggleTheme')"
       :aria-label="$t('a11y.toggleTheme')"
       @click="toggleTheme"
     >
@@ -61,11 +61,11 @@ const { theme, toggleTheme } = useTheme();
             <AuthBrand size="large" color="inverse" />
           </div>
           <p class="auth-layout__tagline">
-            Your private, open-source workspace for notes, docs, and databases.
+            您的私人开源工作区，用来管理笔记、文档和数据库。
           </p>
 
           <!-- Feature highlights -->
-          <div class="auth-layout__features" role="list" aria-label="Key features">
+          <div class="auth-layout__features" role="list" aria-label="核心功能">
             <div class="auth-layout__feature" role="listitem">
               <div class="auth-layout__feature-icon" aria-hidden="true">
                 <!-- Workspace / layers icon -->
@@ -91,8 +91,8 @@ const { theme, toggleTheme } = useTheme();
                 </svg>
               </div>
               <div class="auth-layout__feature-text">
-                <span class="auth-layout__feature-title">Notes, Docs &amp; Databases</span>
-                <span class="auth-layout__feature-desc">Everything in one unified workspace</span>
+                <span class="auth-layout__feature-title">笔记、文档与数据库</span>
+                <span class="auth-layout__feature-desc">在一个统一的工作区中集中管理</span>
               </div>
             </div>
 
@@ -118,8 +118,8 @@ const { theme, toggleTheme } = useTheme();
                 </svg>
               </div>
               <div class="auth-layout__feature-text">
-                <span class="auth-layout__feature-title">Self-hosted &amp; Private</span>
-                <span class="auth-layout__feature-desc">Your data never leaves your server</span>
+                <span class="auth-layout__feature-title">自托管与隐私</span>
+                <span class="auth-layout__feature-desc">数据始终保留在你的服务器上</span>
               </div>
             </div>
 
@@ -142,8 +142,8 @@ const { theme, toggleTheme } = useTheme();
                 </svg>
               </div>
               <div class="auth-layout__feature-text">
-                <span class="auth-layout__feature-title">Open Source</span>
-                <span class="auth-layout__feature-desc">Transparent and community-driven</span>
+                <span class="auth-layout__feature-title">开源</span>
+                <span class="auth-layout__feature-desc">透明开放，由社区共同推动</span>
               </div>
             </div>
 
@@ -170,14 +170,14 @@ const { theme, toggleTheme } = useTheme();
                 </svg>
               </div>
               <div class="auth-layout__feature-text">
-                <span class="auth-layout__feature-title">Local-first</span>
-                <span class="auth-layout__feature-desc">Works offline, syncs when ready</span>
+                <span class="auth-layout__feature-title">本地优先</span>
+                <span class="auth-layout__feature-desc">离线也能使用，联网后自动同步</span>
               </div>
             </div>
           </div>
         </div>
 
-        <p class="auth-layout__brand-footer">Open source. Self-hosted. Private by design.</p>
+        <p class="auth-layout__brand-footer">开源 · 自托管 · 从设计上保护隐私</p>
 
         <!-- Decorative dot pattern overlay -->
         <div class="auth-layout__pattern" aria-hidden="true"></div>

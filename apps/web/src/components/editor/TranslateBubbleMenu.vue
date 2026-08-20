@@ -65,7 +65,7 @@ async function handleTranslate(language: SupportedLanguage) {
       <!-- Loading overlay -->
       <div v-if="translating" class="translate-loading">
         <div class="translate-spinner"></div>
-        <span>Translating...</span>
+        <span>正在翻译...</span>
       </div>
 
       <!-- Translate trigger button -->
@@ -116,7 +116,7 @@ async function handleTranslate(language: SupportedLanguage) {
             stroke-linecap="round"
           />
         </svg>
-        <span>Translate</span>
+        <span>翻译</span>
         <svg
           class="translate-chevron"
           :class="{ 'translate-chevron--open': showLanguages }"
@@ -141,7 +141,7 @@ async function handleTranslate(language: SupportedLanguage) {
         v-if="showLanguages && !translating"
         class="translate-languages"
         role="listbox"
-        aria-label="Select language"
+        aria-label="选择语言"
         @keydown="handleLanguagesKeydown"
       >
         <button

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores';
 import { useOrganizationsStore } from '@/stores/organizations';
@@ -7,7 +7,8 @@ import { ApiError } from '@/services';
 import MemberRoleBadge from '@/components/MemberRoleBadge.vue';
 import InviteMemberModal from '@/components/InviteMemberModal.vue';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
 const authStore = useAuthStore();
 const orgsStore = useOrganizationsStore();
 
@@ -28,7 +29,7 @@ async function loadInvites() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to load invites';
+    error.value = isChinese.value ? '加载邀请失败' : 'Failed to load invites';
     }
   } finally {
     loading.value = false;
@@ -58,7 +59,7 @@ async function handleCancel(inviteId: string) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to cancel invite';
+    error.value = isChinese.value ? '取消邀请失败' : 'Failed to cancel invite';
     }
   } finally {
     actionLoading.value = null;
@@ -78,7 +79,7 @@ async function handleResend(inviteId: string) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to resend invite';
+    error.value = isChinese.value ? '重新发送邀请失败' : 'Failed to resend invite';
     }
   } finally {
     actionLoading.value = null;
@@ -88,7 +89,7 @@ async function handleResend(inviteId: string) {
 // Format date
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(isChinese.value ? 'zh-CN' : 'en-GB', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -107,7 +108,7 @@ function isExpired(expiresAt: string): boolean {
       <div class="header-content">
         <h1 class="page-title">{{ $t('invites.title') }}</h1>
         <p class="page-subtitle">
-          Manage pending invitations to {{ authStore.currentOrganization?.name }}
+          {{ isChinese ? '管理发送给' : 'Manage pending invitations sent to' }} {{ authStore.currentOrganization?.name }} {{ isChinese ? '的待处理邀请' : '' }}
         </p>
       </div>
       <button class="btn btn-primary" @click="showInviteModal = true">
@@ -133,7 +134,7 @@ function isExpired(expiresAt: string): boolean {
 
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
-      <p>Loading invites...</p>
+      <p>{{ isChinese ? '正在加载邀请...' : 'Loading invites...' }}</p>
     </div>
 
     <div v-else class="invites-list">
@@ -198,7 +199,7 @@ function isExpired(expiresAt: string): boolean {
           </button>
           <button
             class="action-btn action-danger"
-            title="Cancel invite"
+            :title="isChinese ? '取消邀请' : 'Cancel invite'"
             :disabled="actionLoading === invite.id"
             @click="handleCancel(invite.id)"
           >
@@ -235,8 +236,8 @@ function isExpired(expiresAt: string): boolean {
             />
           </svg>
         </div>
-        <h3>No pending invites</h3>
-        <p>Send an invite to add new members to your organization.</p>
+        <h3>{{ isChinese ? '暂无待处理邀请' : 'No pending invites' }}</h3>
+        <p>{{ isChinese ? '发送邀请即可添加新成员。' : 'Send an invitation to add a new member.' }}</p>
         <button class="btn btn-primary" @click="showInviteModal = true">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
@@ -246,7 +247,7 @@ function isExpired(expiresAt: string): boolean {
               stroke-linecap="round"
             />
           </svg>
-          <span>Send Invite</span>
+          <span>{{ isChinese ? '发送邀请' : 'Send Invite' }}</span>
         </button>
       </div>
     </div>

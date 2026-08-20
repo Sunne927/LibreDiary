@@ -73,7 +73,7 @@ onMounted(() => {
         v-if="!annotating"
         data-testid="annotate-btn"
         class="image-node-view__annotate-btn"
-        aria-label="Annotate image"
+        aria-label="标注图片"
         @click.stop="activateAnnotations"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -92,7 +92,7 @@ onMounted(() => {
         v-if="annotating"
         data-testid="close-annotations-btn"
         class="image-node-view__close-btn"
-        aria-label="Close annotations"
+        aria-label="关闭图片标注"
         @click.stop="deactivateAnnotations"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

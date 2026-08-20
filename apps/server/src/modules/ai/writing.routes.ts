@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { writeText } from './writing.service.js';
+import { streamWriteText, writeText } from './writing.service.js';
 import { requireAuth } from '../auth/auth.middleware.js';
 import { requireOrgAccess } from '../organizations/organizations.middleware.js';
 import { getAuthUser, mapServiceError, type ErrorMap } from '../../utils/errors.js';
@@ -15,6 +15,7 @@ export const WRITING_ACTIONS = [
   'expand',
   'summarise',
   'improve',
+  'custom',
   'schedule',
   'todos',
 ] as const;
@@ -26,6 +27,7 @@ export const WRITING_ACTIONS = [
 const writeBodySchema = z.object({
   action: z.enum(WRITING_ACTIONS),
   text: z.string().min(1).max(10000),
+  instruction: z.string().max(1000).optional(),
 });
 
 // ===========================================
@@ -88,7 +90,7 @@ export default async function writingRoutes(fastify: FastifyInstance): Promise<v
       });
     }
 
-    const { action, text } = bodyResult.data;
+    const { action, text, instruction } = bodyResult.data;
     const user = getAuthUser(request);
 
     try {
@@ -96,6 +98,7 @@ export default async function writingRoutes(fastify: FastifyInstance): Promise<v
         action,
         text,
         organizationId: request.params.orgId,
+        instruction,
       });
 
       logAudit({
@@ -112,5 +115,57 @@ export default async function writingRoutes(fastify: FastifyInstance): Promise<v
     } catch (error) {
       return mapServiceError(error, reply, errorMap);
     }
+  });
+
+  fastify.post('/stream', async (request: FastifyRequest<{ Params: OrgParams }>, reply: FastifyReply) => {
+    const bodyResult = writeBodySchema.safeParse(request.body);
+    if (!bodyResult.success) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid request body',
+          details: bodyResult.error.flatten().fieldErrors,
+        },
+      });
+    }
+
+    const { action, text, instruction } = bodyResult.data;
+    const user = getAuthUser(request);
+    reply.hijack();
+    reply.raw.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    reply.raw.setHeader('Cache-Control', 'no-cache, no-transform');
+    reply.raw.setHeader('Connection', 'keep-alive');
+
+    try {
+      for await (const token of streamWriteText({
+        action,
+        text,
+        organizationId: request.params.orgId,
+        instruction,
+      })) {
+        reply.raw.write(`data: ${JSON.stringify({ content: token })}\n\n`);
+      }
+
+      reply.raw.write('data: [DONE]\n\n');
+      logAudit({
+        action: 'AI_WRITING',
+        userId: user.id,
+        organizationId: request.params.orgId,
+        metadata: { writingAction: action, textLength: text.length, streaming: true },
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      const safeMessage = message === 'AI_DISABLED' || message === 'AI is disabled'
+        ? 'AI features are disabled'
+        : message === 'No API key configured'
+          ? 'AI service is not configured'
+          : 'Writing failed. Please try again later.';
+      reply.raw.write(`event: error\ndata: ${JSON.stringify({ message: safeMessage })}\n\n`);
+    } finally {
+      reply.raw.end();
+    }
+
+    return reply;
   });
 }

@@ -238,7 +238,7 @@ onUnmounted(() => {
               v-if="hasQuery"
               type="button"
               class="search-clear-btn"
-              aria-label="Clear search"
+              aria-label="清除搜索内容"
               @click="query = ''"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -254,7 +254,7 @@ onUnmounted(() => {
               class="search-filter-toggle"
               type="button"
               :class="{ active: showFilters }"
-              aria-label="Toggle filters"
+              aria-label="切换筛选条件"
               :aria-expanded="showFilters"
               @click="toggleFilters"
             >
@@ -286,7 +286,7 @@ onUnmounted(() => {
                   v-model="createdById"
                   type="text"
                   class="filter-input"
-                  placeholder="User ID"
+                  placeholder="用户 ID"
                   @change="applyFilters"
                 />
               </label>
@@ -332,7 +332,7 @@ onUnmounted(() => {
                   <span class="result-title">{{ search }}</span>
                   <button
                     class="remove-recent-btn"
-                    aria-label="Remove from recent"
+                    aria-label="从最近搜索中移除"
                     @click="handleRemoveRecent(search, $event)"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">

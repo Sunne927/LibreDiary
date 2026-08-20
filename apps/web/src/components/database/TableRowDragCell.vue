@@ -36,7 +36,7 @@ function onStartTimer(): void {
 <template>
   <td class="cell-drag" draggable="true" @dragstart="onDragStart" @dragend="onDragEnd">
     <!-- Timer active indicator -->
-    <span v-if="timerActive" class="timer-row-indicator" title="Timer running">
+    <span v-if="timerActive" class="timer-row-indicator" title="计时进行中">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2" />
         <path
@@ -53,7 +53,7 @@ function onStartTimer(): void {
     <button
       v-else-if="showStartTimer"
       class="start-timer-btn"
-      title="Start timer"
+      title="开始计时"
       @click.stop="onStartTimer"
     >
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">

@@ -152,3 +152,6 @@ uploads/
 
 # Marketing screenshots
 screenshots/
+
+# local graphify knowledge-graph output (not part of app)
+graphify-out/

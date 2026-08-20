@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { authService } from '@/services/auth.service';
 import type { SessionInfo } from '@/services/auth.service';
 import { useToast } from '@/composables/useToast';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
 const toast = useToast();
 
 const sessions = ref<SessionInfo[]>([]);
@@ -25,7 +26,7 @@ async function loadSessions() {
     sessions.value = response.sessions;
   } catch (e) {
     console.error('Failed to load sessions:', e);
-    error.value = 'Failed to load sessions';
+    error.value = isChinese.value ? '加载会话失败' : 'Failed to load sessions';
   } finally {
     loading.value = false;
   }
@@ -36,10 +37,10 @@ async function revokeSession(sessionId: string) {
   try {
     await authService.revokeSession(sessionId);
     sessions.value = sessions.value.filter((s) => s.id !== sessionId);
-    toast.success('Session revoked successfully');
+    toast.success(isChinese.value ? '会话已成功撤销' : 'Session revoked successfully');
   } catch (e) {
     console.error('Failed to revoke session:', e);
-    toast.error('Failed to revoke session');
+    toast.error(isChinese.value ? '撤销会话失败' : 'Failed to revoke session');
   } finally {
     revokingId.value = null;
   }
@@ -250,7 +251,7 @@ function getDeviceIcon(userAgent: string | null): string {
                   stroke-linecap="round"
                 />
               </svg>
-              {{ session.ipAddress ?? 'Unknown' }}
+              {{ session.ipAddress ?? (isChinese ? '未知' : 'Unknown') }}
             </span>
           </div>
         </div>

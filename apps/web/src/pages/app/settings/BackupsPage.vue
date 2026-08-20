@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useBackupsStore } from '@/stores/backups';
 import { useToast } from '@/composables';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -8,6 +9,8 @@ import type { Backup } from '@librediary/shared';
 
 const backupsStore = useBackupsStore();
 const toast = useToast();
+const { locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
 
 const loading = ref(true);
 
@@ -22,7 +25,7 @@ const showConfirmDialog = ref(false);
 const confirmDialogConfig = ref({
   title: '',
   message: '',
-  confirmText: 'Confirm',
+  confirmText: '确认',
   variant: 'destructive' as 'default' | 'destructive',
   onConfirm: () => {},
 });
@@ -47,7 +50,7 @@ function openCreateModal() {
 
 async function handleCreateBackup() {
   if (encryptBackup.value && backupPassword.value.length < 8) {
-    passwordError.value = 'Password must be at least 8 characters';
+    passwordError.value = isChinese.value ? '密码至少需要 8 个字符' : 'Password must be at least 8 characters';
     return;
   }
 
@@ -58,10 +61,10 @@ async function handleCreateBackup() {
       encrypt: encryptBackup.value,
       password: encryptBackup.value ? backupPassword.value : undefined,
     });
-    toast.success('Backup created');
+    toast.success(isChinese.value ? '备份已创建' : 'Backup created');
   } catch (error) {
     console.error('Failed to create backup:', error);
-    toast.error('Failed to create backup');
+    toast.error(isChinese.value ? '创建备份失败' : 'Failed to create backup');
   }
 }
 
@@ -78,23 +81,23 @@ async function handleDownload(backup: Backup) {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Failed to download backup:', error);
-    toast.error('Failed to download backup');
+    toast.error('下载备份失败');
   }
 }
 
 function confirmDelete(backup: Backup) {
   confirmDialogConfig.value = {
-    title: 'Delete Backup',
-    message: 'Are you sure you want to delete this backup? This action cannot be undone.',
-    confirmText: 'Delete Backup',
+    title: isChinese.value ? '删除备份' : 'Delete backup',
+    message: isChinese.value ? '确定要删除这个备份吗？此操作无法撤销。' : 'Are you sure you want to delete this backup? This action cannot be undone.',
+    confirmText: isChinese.value ? '删除备份' : 'Delete backup',
     variant: 'destructive',
     onConfirm: async () => {
       try {
         await backupsStore.deleteOrgBackup(backup.id);
-        toast.success('Backup deleted');
+        toast.success(isChinese.value ? '备份已删除' : 'Backup deleted');
       } catch (error) {
         console.error('Failed to delete backup:', error);
-        toast.error('Failed to delete backup');
+        toast.error(isChinese.value ? '删除备份失败' : 'Failed to delete backup');
       }
     },
   };
@@ -102,7 +105,7 @@ function confirmDelete(backup: Backup) {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-GB', {
+  return new Date(dateString).toLocaleDateString(locale.value === 'zh-CN' ? 'zh-CN' : 'en-GB', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -132,14 +135,24 @@ function statusClass(status: string): string {
       return '';
   }
 }
+
+function formatStatus(status: string): string {
+  if (!isChinese.value) return status.replace('_', ' ');
+  return {
+    PENDING: '等待中',
+    IN_PROGRESS: '处理中',
+    COMPLETED: '已完成',
+    FAILED: '失败',
+  }[status] ?? status;
+}
 </script>
 
 <template>
   <div class="backups-page">
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Backups</h1>
-        <p class="page-description">Create and manage organisation data backups</p>
+        <h1 class="page-title">{{ isChinese ? '备份' : 'Backups' }}</h1>
+        <p class="page-description">{{ isChinese ? '创建和管理工作区数据备份' : 'Create and manage organisation data backups' }}</p>
       </div>
       <button class="btn-primary" :disabled="backupsStore.creating" @click="openCreateModal">
         <svg
@@ -169,7 +182,7 @@ function statusClass(status: string): string {
             stroke-linecap="round"
           />
         </svg>
-        {{ backupsStore.creating ? 'Creating...' : 'Create Backup' }}
+        {{ backupsStore.creating ? (isChinese ? '正在创建...' : 'Creating...') : (isChinese ? '创建备份' : 'Create Backup') }}
       </button>
     </div>
 
@@ -178,12 +191,12 @@ function statusClass(status: string): string {
       <table class="data-table">
         <thead>
           <tr>
-            <th>File Name</th>
-            <th>Size</th>
-            <th>Status</th>
-            <th>Encrypted</th>
-            <th>Created</th>
-            <th class="actions-col">Actions</th>
+            <th>文件名</th>
+            <th>大小</th>
+            <th>状态</th>
+            <th>是否加密</th>
+            <th>创建时间</th>
+            <th class="actions-col">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -219,7 +232,7 @@ function statusClass(status: string): string {
                     stroke-linejoin="round"
                   />
                 </svg>
-                <span>No backups yet. Create your first backup to get started.</span>
+                <span>{{ isChinese ? '暂无备份。创建第一个备份即可开始。' : 'No backups yet' }}</span>
               </div>
             </td>
           </tr>
@@ -234,7 +247,7 @@ function statusClass(status: string): string {
             </td>
             <td>
               <span class="badge" :class="statusClass(backup.status)">
-                {{ backup.status.replace('_', ' ') }}
+                {{ formatStatus(backup.status) }}
               </span>
             </td>
             <td>
@@ -256,9 +269,9 @@ function statusClass(status: string): string {
                     stroke-linecap="round"
                   />
                 </svg>
-                Yes
+                {{ isChinese ? '是' : 'Yes' }}
               </span>
-              <span v-else class="encrypted-no">No</span>
+                <span v-else class="encrypted-no">{{ isChinese ? '否' : 'No' }}</span>
             </td>
             <td>
               <span class="date-text">{{ formatDate(backup.createdAt) }}</span>
@@ -268,7 +281,7 @@ function statusClass(status: string): string {
                 <button
                   v-if="backup.status === 'COMPLETED'"
                   class="action-btn"
-                  title="Download backup"
+                  title="下载备份"
                   @click="handleDownload(backup)"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -289,7 +302,7 @@ function statusClass(status: string): string {
                 </button>
                 <button
                   class="action-btn danger"
-                  title="Delete backup"
+                  title="删除备份"
                   @click="confirmDelete(backup)"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -323,37 +336,37 @@ function statusClass(status: string): string {
     <!-- Create Backup Modal -->
     <BaseModal :open="showCreateModal" @close="showCreateModal = false">
       <div class="create-modal">
-        <h2 class="modal-title">Create Backup</h2>
+        <h2 class="modal-title">{{ isChinese ? '创建备份' : 'Create Backup' }}</h2>
         <p class="modal-description">
-          Export all pages, databases, and files for this organisation.
+          {{ isChinese ? '导出此工作区中的所有页面、数据库和文件。' : 'Export all pages, databases, and files for this organisation.' }}
         </p>
 
         <div class="form-field">
           <label class="checkbox-label">
             <input v-model="encryptBackup" type="checkbox" class="checkbox" />
-            <span>Encrypt backup</span>
+            <span>{{ isChinese ? '加密备份' : 'Encrypt backup' }}</span>
           </label>
           <p class="field-hint">
-            Encrypt the backup with AES-256-GCM. You will need the password to restore.
+            {{ isChinese ? '使用 AES-256-GCM 加密备份。恢复时需要输入密码。' : 'Encrypt the backup with AES-256-GCM. You will need the password to restore.' }}
           </p>
         </div>
 
         <div v-if="encryptBackup" class="form-field">
-          <label class="field-label" for="backup-password">Password</label>
+          <label class="field-label" for="backup-password">密码</label>
           <input
             id="backup-password"
             v-model="backupPassword"
             type="password"
             class="field-input"
-            placeholder="Minimum 8 characters"
+            placeholder="至少 8 个字符"
             autocomplete="new-password"
           />
           <p v-if="passwordError" class="field-error">{{ passwordError }}</p>
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="handleCreateBackup">Create Backup</button>
+          <button class="btn btn-secondary" @click="showCreateModal = false">{{ isChinese ? '取消' : 'Cancel' }}</button>
+          <button class="btn btn-primary" @click="handleCreateBackup">{{ isChinese ? '创建备份' : 'Create Backup' }}</button>
         </div>
       </div>
     </BaseModal>

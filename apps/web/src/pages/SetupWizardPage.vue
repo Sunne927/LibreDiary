@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTheme } from '@/composables';
 import { setupService, ApiError } from '@/services';
@@ -8,11 +8,9 @@ import { resetSetupStatus } from '@/router';
 const router = useRouter();
 const { theme, toggleTheme } = useTheme();
 
-const hostPrefix = computed(() => `${window.location.host}/`);
-
 // Wizard state
 const currentStep = ref(1);
-const totalSteps = 4;
+const totalSteps = 3;
 const loading = ref(false);
 const error = ref('');
 const setupComplete = ref(false);
@@ -23,16 +21,6 @@ const adminEmail = ref('');
 const adminPassword = ref('');
 const adminPasswordConfirm = ref('');
 const adminName = ref('');
-const orgName = ref('');
-const orgSlug = ref('');
-
-// Auto-generate slug from org name
-watch(orgName, (name) => {
-  if (!orgSlug.value || orgSlug.value === slugify(orgName.value.slice(0, -1))) {
-    orgSlug.value = slugify(name);
-  }
-});
-
 function slugify(text: string): string {
   return (
     text
@@ -63,21 +51,12 @@ const step2Valid = computed(() => {
   );
 });
 
-const step3Valid = computed(() => {
-  const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-  return (
-    orgName.value.trim().length > 0 && slugRegex.test(orgSlug.value) && orgSlug.value.length >= 2
-  );
-});
-
 const canProceed = computed(() => {
   switch (currentStep.value) {
     case 1:
-      return step1Valid.value;
-    case 2:
       return step2Valid.value;
-    case 3:
-      return step3Valid.value;
+    case 2:
+      return step1Valid.value;
     default:
       return false;
   }
@@ -132,8 +111,8 @@ async function completeSetup() {
         name: adminName.value || undefined,
       },
       organization: {
-        name: orgName.value,
-        slug: orgSlug.value,
+        name: siteName.value.trim(),
+        slug: slugify(siteName.value) || 'personal-workspace',
       },
     });
 
@@ -141,12 +120,12 @@ async function completeSetup() {
     resetSetupStatus();
 
     setupComplete.value = true;
-    currentStep.value = 4;
+    currentStep.value = 3;
   } catch (err) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'An unexpected error occurred';
+      error.value = '发生了意外错误';
     }
   } finally {
     loading.value = false;
@@ -169,7 +148,7 @@ function goToLogin() {
     </div>
 
     <!-- Theme Toggle -->
-    <button class="theme-toggle" :title="`Theme: ${theme}`" @click="toggleTheme">
+    <button class="theme-toggle" title="切换颜色主题" @click="toggleTheme">
       <svg v-if="theme === 'light'" width="20" height="20" viewBox="0 0 20 20" fill="none">
         <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5" />
         <path
@@ -236,7 +215,7 @@ function goToLogin() {
       </div>
 
       <!-- Progress Indicator -->
-      <div v-if="currentStep < 4" class="progress-container">
+      <div v-if="currentStep < 3" class="progress-container">
         <div class="progress-bar">
           <div
             class="progress-fill"
@@ -266,7 +245,7 @@ function goToLogin() {
               <span v-else>{{ step }}</span>
             </div>
             <span class="step-label">{{
-              [$t('setup.stepSite'), $t('setup.stepAdmin'), $t('setup.stepOrganisation')][step - 1]
+              ['访问凭证', $t('setup.stepSite')][step - 1]
             }}</span>
           </div>
         </div>
@@ -291,8 +270,100 @@ function goToLogin() {
       <!-- Step Content -->
       <div class="step-content">
         <Transition name="slide" mode="out-in">
-          <!-- Step 1: Site Name -->
+          <!-- Step 1: Access Credentials -->
           <div v-if="currentStep === 1" key="step1" class="step-panel">
+            <div class="step-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect
+                  x="4"
+                  y="4"
+                  width="24"
+                  height="24"
+                  rx="4"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M10 14H22M10 18H18"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+                <circle cx="16" cy="10" r="2" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </div>
+            <h2>设置访问密码</h2>
+            <p class="step-description">
+              这是你的私人工作区，密码仅供你本人使用。
+            </p>
+
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="adminName">显示名称 <span class="optional">（选填）</span></label>
+                <input
+                  id="adminName"
+                  v-model="adminName"
+                  type="text"
+                  placeholder="你的姓名"
+                  maxlength="255"
+                  autocomplete="name"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="adminEmail">登录邮箱</label>
+                <input
+                  id="adminEmail"
+                  v-model="adminEmail"
+                  type="email"
+                  :placeholder="$t('auth.emailPlaceholder')"
+                  required
+                  autocomplete="email"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="adminPassword">访问密码</label>
+                <input
+                  id="adminPassword"
+                  v-model="adminPassword"
+                  type="password"
+                  :placeholder="$t('auth.newPasswordPlaceholder')"
+                  required
+                  minlength="8"
+                  autocomplete="new-password"
+                />
+                <div v-if="adminPassword.length > 0" class="password-strength">
+                  <div class="strength-bar">
+                    <div class="strength-fill" :class="`level-${passwordStrength.level}`"></div>
+                  </div>
+                  <span class="strength-label" :class="`level-${passwordStrength.level}`">{{
+                    passwordStrength.label
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="adminPasswordConfirm">确认访问密码</label>
+                <input
+                  id="adminPasswordConfirm"
+                  v-model="adminPasswordConfirm"
+                  type="password"
+                  :placeholder="$t('auth.confirmPasswordPlaceholder')"
+                  required
+                  autocomplete="new-password"
+                />
+                <span
+                  v-if="adminPasswordConfirm && adminPassword !== adminPasswordConfirm"
+                  class="field-error"
+                  >两次输入的密码不一致</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Site Name -->
+          <div v-else-if="currentStep === 2" key="step2" class="step-panel">
             <div class="step-icon">
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                 <rect
@@ -315,7 +386,7 @@ function goToLogin() {
             </div>
             <h2>{{ $t('setup.nameYourWorkspace') }}</h2>
             <p class="step-description">
-              Choose a name that represents your team or project. You can change this later.
+              Choose a name that represents your private workspace. You can change this later.
             </p>
 
             <div class="form-field">
@@ -324,7 +395,7 @@ function goToLogin() {
                 id="siteName"
                 v-model="siteName"
                 type="text"
-                placeholder="My Workspace"
+                placeholder="我的工作区"
                 maxlength="255"
                 autofocus
               />
@@ -332,172 +403,8 @@ function goToLogin() {
             </div>
           </div>
 
-          <!-- Step 2: Admin Account -->
-          <div v-else-if="currentStep === 2" key="step2" class="step-panel">
-            <div class="step-icon">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="12" r="5" stroke="currentColor" stroke-width="1.5" />
-                <path
-                  d="M6 28C6 22.4772 10.4772 18 16 18C21.5228 18 26 22.4772 26 28"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M23 8L25 10L29 6"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </div>
-            <h2>{{ $t('setup.createAdminAccount') }}</h2>
-            <p class="step-description">
-              This account will have full administrative access to manage your workspace.
-            </p>
-
-            <div class="form-grid">
-              <div class="form-field">
-                <label for="adminName">Name <span class="optional">(optional)</span></label>
-                <input
-                  id="adminName"
-                  v-model="adminName"
-                  type="text"
-                  placeholder="Your name"
-                  maxlength="255"
-                  autocomplete="name"
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="adminEmail">{{ $t('auth.email') }}</label>
-                <input
-                  id="adminEmail"
-                  v-model="adminEmail"
-                  type="email"
-                  :placeholder="$t('auth.emailPlaceholder')"
-                  required
-                  autocomplete="email"
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="adminPassword">{{ $t('auth.password') }}</label>
-                <input
-                  id="adminPassword"
-                  v-model="adminPassword"
-                  type="password"
-                  :placeholder="$t('auth.newPasswordPlaceholder')"
-                  required
-                  minlength="8"
-                  autocomplete="new-password"
-                />
-                <div v-if="adminPassword.length > 0" class="password-strength">
-                  <div class="strength-bar">
-                    <div class="strength-fill" :class="`level-${passwordStrength.level}`"></div>
-                  </div>
-                  <span class="strength-label" :class="`level-${passwordStrength.level}`">{{
-                    passwordStrength.label
-                  }}</span>
-                </div>
-              </div>
-
-              <div class="form-field">
-                <label for="adminPasswordConfirm">{{ $t('auth.confirmPassword') }}</label>
-                <input
-                  id="adminPasswordConfirm"
-                  v-model="adminPasswordConfirm"
-                  type="password"
-                  :placeholder="$t('auth.confirmPasswordPlaceholder')"
-                  required
-                  autocomplete="new-password"
-                />
-                <span
-                  v-if="adminPasswordConfirm && adminPassword !== adminPasswordConfirm"
-                  class="field-error"
-                  >Passwords don't match</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 3: Organization -->
-          <div v-else-if="currentStep === 3" key="step3" class="step-panel">
-            <div class="step-icon">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <rect
-                  x="4"
-                  y="8"
-                  width="10"
-                  height="18"
-                  rx="2"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <rect
-                  x="18"
-                  y="4"
-                  width="10"
-                  height="22"
-                  rx="2"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path
-                  d="M7 12H11M7 16H11M7 20H11"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M21 8H25M21 12H25M21 16H25M21 20H25"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </div>
-            <h2>{{ $t('setup.createFirstOrganisation') }}</h2>
-            <p class="step-description">
-              Organizations help you separate different teams or projects. You can create more
-              later.
-            </p>
-
-            <div class="form-grid">
-              <div class="form-field">
-                <label for="orgName">{{ $t('setup.organisationName') }}</label>
-                <input
-                  id="orgName"
-                  v-model="orgName"
-                  type="text"
-                  placeholder="Acme Inc."
-                  required
-                  maxlength="255"
-                />
-              </div>
-
-              <div class="form-field">
-                <label for="orgSlug">{{ $t('setup.urlSlug') }}</label>
-                <div class="slug-input-wrapper">
-                  <span class="slug-prefix">{{ hostPrefix }}</span>
-                  <input
-                    id="orgSlug"
-                    v-model="orgSlug"
-                    type="text"
-                    placeholder="acme"
-                    required
-                    maxlength="63"
-                    pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                  />
-                </div>
-                <span class="field-hint">{{ $t('setup.urlSlugHelp') }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 4: Success -->
-          <div v-else-if="currentStep === 4" key="step4" class="step-panel success-panel">
+          <!-- Step 3: Success -->
+          <div v-else-if="currentStep === 3" key="step3" class="step-panel success-panel">
             <div class="success-animation">
               <div class="success-circle">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -519,8 +426,7 @@ function goToLogin() {
             </div>
             <h2>{{ $t('setup.allSet') }}</h2>
             <p class="step-description">
-              Your workspace <strong>{{ siteName }}</strong> is ready. Sign in with your admin
-              account to get started.
+              Your private workspace <strong>{{ siteName }}</strong> is ready. Sign in to continue.
             </p>
 
             <div class="success-summary">
@@ -534,30 +440,7 @@ function goToLogin() {
                     stroke-linecap="round"
                   />
                 </svg>
-                <span>{{ adminEmail }}</span>
-              </div>
-              <div class="summary-item">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <rect
-                    x="3"
-                    y="5"
-                    width="6"
-                    height="10"
-                    rx="1"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  />
-                  <rect
-                    x="11"
-                    y="3"
-                    width="6"
-                    height="12"
-                    rx="1"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  />
-                </svg>
-                <span>{{ orgName }}</span>
+                <span>登录邮箱：{{ adminEmail }}</span>
               </div>
             </div>
           </div>
@@ -566,7 +449,7 @@ function goToLogin() {
 
       <!-- Navigation Buttons -->
       <div class="step-navigation">
-        <button v-if="currentStep > 1 && currentStep < 4" class="btn-secondary" @click="prevStep">
+        <button v-if="currentStep > 1 && currentStep < 3" class="btn-secondary" @click="prevStep">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path
               d="M10 12L6 8L10 4"
@@ -581,7 +464,7 @@ function goToLogin() {
         <div v-else class="spacer"></div>
 
         <button
-          v-if="currentStep < 3"
+          v-if="currentStep < 2"
           class="btn-primary"
           :disabled="!canProceed"
           @click="nextStep"
@@ -599,7 +482,7 @@ function goToLogin() {
         </button>
 
         <button
-          v-else-if="currentStep === 3"
+          v-else-if="currentStep === 2"
           class="btn-primary"
           :disabled="!canProceed || loading"
           @click="completeSetup"
@@ -619,7 +502,7 @@ function goToLogin() {
           </template>
         </button>
 
-        <button v-else-if="currentStep === 4" class="btn-primary btn-large" @click="goToLogin">
+        <button v-else-if="currentStep === 3" class="btn-primary btn-large" @click="goToLogin">
           Sign In to Your Workspace
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path

@@ -60,7 +60,7 @@ async function loadSettings() {
     const settings = await getSystemSettings();
     populateForm(settings);
   } catch (error) {
-    settingsError.value = error instanceof Error ? error.message : 'Failed to load settings';
+    settingsError.value = error instanceof Error ? error.message : '加载设置失败';
   } finally {
     settingsLoading.value = false;
   }
@@ -79,11 +79,11 @@ async function handleSave() {
       defaultUserLocale: formDefaultLocale.value,
     });
     populateForm(settings);
-    saveMessage.value = { type: 'success', text: 'Settings saved' };
+    saveMessage.value = { type: 'success', text: '设置已保存' };
   } catch (error) {
     saveMessage.value = {
       type: 'error',
-      text: error instanceof Error ? error.message : 'Failed to save settings',
+      text: error instanceof Error ? error.message : '保存设置失败',
     };
   } finally {
     saving.value = false;
@@ -106,11 +106,11 @@ async function handleSaveAiSettings() {
 
     const settings = await updateSystemSettings(updateData);
     populateForm(settings);
-    aiSaveMessage.value = { type: 'success', text: 'AI settings saved' };
+    aiSaveMessage.value = { type: 'success', text: 'AI 设置已保存' };
   } catch (error) {
     aiSaveMessage.value = {
       type: 'error',
-      text: error instanceof Error ? error.message : 'Failed to save AI settings',
+      text: error instanceof Error ? error.message : '保存 AI 设置失败',
     };
   } finally {
     aiSaving.value = false;
@@ -126,7 +126,7 @@ async function handleTestAiConnection() {
   } catch (error) {
     aiTestResult.value = {
       success: false,
-      message: error instanceof Error ? error.message : 'Connection test failed',
+      message: error instanceof Error ? error.message : '连接测试失败',
     };
   } finally {
     testingAi.value = false;
@@ -140,11 +140,11 @@ onMounted(async () => {
 const backupStorageLabel = computed(() => {
   switch (backupsStore.settings?.storageType) {
     case 'LOCAL':
-      return 'Local Disk';
+      return '本地磁盘';
     case 'S3':
-      return 'S3 Compatible';
+      return '兼容 S3';
     default:
-      return backupsStore.settings?.storageType ?? 'Unknown';
+      return backupsStore.settings?.storageType ?? '未知';
   }
 });
 
@@ -153,7 +153,7 @@ async function loadStorageInfo() {
   try {
     await filesStore.fetchStorageInfo();
   } catch (error) {
-    console.error('Failed to load storage info:', error);
+    console.error('加载存储信息失败:', error);
   } finally {
     loading.value = false;
   }
@@ -167,7 +167,7 @@ async function handleTestConnection() {
   } catch (error) {
     connectionResult.value = {
       success: false,
-      message: error instanceof Error ? error.message : 'Connection test failed',
+      message: error instanceof Error ? error.message : '连接测试失败',
     };
   } finally {
     testingConnection.value = false;
@@ -186,13 +186,13 @@ const storageTypeLabel = computed(() => {
   const type = filesStore.storageInfo?.type;
   switch (type) {
     case 'LOCAL':
-      return 'Local Disk';
+      return '本地磁盘';
     case 'MINIO':
       return 'MinIO';
     case 'S3':
       return 'Amazon S3';
     default:
-      return type ?? 'Unknown';
+      return type ?? '未知';
   }
 });
 </script>
@@ -200,8 +200,8 @@ const storageTypeLabel = computed(() => {
 <template>
   <div class="admin-settings">
     <div class="page-header">
-      <h1 class="page-title">System Settings</h1>
-      <p class="page-description">Storage configuration and system preferences</p>
+      <h1 class="page-title">系统设置</h1>
+      <p class="page-description">存储配置和系统偏好</p>
     </div>
 
     <!-- General Section -->
@@ -224,8 +224,8 @@ const storageTypeLabel = computed(() => {
           </svg>
         </div>
         <div>
-          <h2 class="section-title">General</h2>
-          <p class="section-description">Platform-wide settings</p>
+          <h2 class="section-title">常规</h2>
+          <p class="section-description">全平台设置</p>
         </div>
       </div>
 
@@ -254,7 +254,7 @@ const storageTypeLabel = computed(() => {
       <!-- Settings Form -->
       <div v-else class="settings-form">
         <div class="form-field">
-          <label class="form-label" for="siteName">Site Name</label>
+          <label class="form-label" for="siteName">站点名称</label>
           <input
             id="siteName"
             v-model="formSiteName"
@@ -266,8 +266,8 @@ const storageTypeLabel = computed(() => {
 
         <div class="form-field form-field--toggle">
           <div class="toggle-content">
-            <label class="form-label" for="allowSignups">Allow Signups</label>
-            <span class="form-hint">Allow new users to register on the platform</span>
+            <label class="form-label" for="allowSignups">允许注册</label>
+            <span class="form-hint">允许新用户在平台注册</span>
           </div>
           <input
             id="allowSignups"
@@ -281,10 +281,10 @@ const storageTypeLabel = computed(() => {
         <div class="form-field form-field--toggle">
           <div class="toggle-content">
             <label class="form-label" for="requireEmailVerification"
-              >Require Email Verification</label
+              >要求验证邮箱</label
             >
             <span class="form-hint"
-              >Users must verify their email before accessing the platform</span
+              >用户必须验证邮箱后才能访问平台</span
             >
           </div>
           <input
@@ -297,7 +297,7 @@ const storageTypeLabel = computed(() => {
         </div>
 
         <div class="form-field">
-          <label class="form-label" for="sessionMaxAge">Session Duration (hours)</label>
+          <label class="form-label" for="sessionMaxAge">会话时长（小时）</label>
           <input
             id="sessionMaxAge"
             v-model.number="formSessionHours"
@@ -310,7 +310,7 @@ const storageTypeLabel = computed(() => {
         </div>
 
         <div class="form-field">
-          <label class="form-label" for="maxOrganisationsPerUser">Max Organisations Per User</label>
+          <label class="form-label" for="maxOrganisationsPerUser">每位用户最多拥有的工作区数</label>
           <input
             id="maxOrganisationsPerUser"
             v-model.number="formMaxOrgsPerUser"
@@ -319,11 +319,11 @@ const storageTypeLabel = computed(() => {
             data-field="maxOrganisationsPerUser"
             min="0"
           />
-          <span class="form-hint">0 = unlimited</span>
+          <span class="form-hint">0 表示不限制</span>
         </div>
 
         <div class="form-field">
-          <label class="form-label" for="defaultUserLocale">Default Locale</label>
+          <label class="form-label" for="defaultUserLocale">默认语言</label>
           <input
             id="defaultUserLocale"
             v-model="formDefaultLocale"
@@ -354,7 +354,7 @@ const storageTypeLabel = computed(() => {
                 stroke-linecap="round"
               />
             </svg>
-            {{ saving ? 'Saving...' : 'Save Settings' }}
+            {{ saving ? '正在保存...' : '保存设置' }}
           </button>
 
           <div
@@ -413,16 +413,16 @@ const storageTypeLabel = computed(() => {
           </svg>
         </div>
         <div>
-          <h2 class="section-title">AI Settings</h2>
-          <p class="section-description">OpenRouter integration for AI features</p>
+          <h2 class="section-title">AI 设置</h2>
+          <p class="section-description">通过 OpenRouter 接入 AI 功能</p>
         </div>
       </div>
 
       <div v-if="!settingsLoading && !settingsError" class="settings-form">
         <div class="form-field form-field--toggle">
           <div class="toggle-content">
-            <label class="form-label" for="aiEnabled">Enable AI</label>
-            <span class="form-hint">Enable AI-powered features across the platform</span>
+          <label class="form-label" for="aiEnabled">启用 AI</label>
+          <span class="form-hint">启用全平台 AI 功能</span>
           </div>
           <input
             id="aiEnabled"
@@ -434,7 +434,7 @@ const storageTypeLabel = computed(() => {
         </div>
 
         <div class="form-field">
-          <label class="form-label" for="openrouterApiKey">API Key</label>
+          <label class="form-label" for="openrouterApiKey">API 密钥</label>
           <div class="input-with-toggle">
             <input
               id="openrouterApiKey"
@@ -469,7 +469,7 @@ const storageTypeLabel = computed(() => {
         </div>
 
         <div class="form-field">
-          <label class="form-label" for="openrouterModel">Model</label>
+          <label class="form-label" for="openrouterModel">模型</label>
           <input
             id="openrouterModel"
             v-model="formOpenrouterModel"
@@ -501,7 +501,7 @@ const storageTypeLabel = computed(() => {
                 stroke-linecap="round"
               />
             </svg>
-            {{ aiSaving ? 'Saving...' : 'Save AI Settings' }}
+            {{ aiSaving ? '正在保存...' : '保存 AI 设置' }}
           </button>
 
           <button class="test-button" :disabled="testingAi" @click="handleTestAiConnection">
@@ -524,7 +524,7 @@ const storageTypeLabel = computed(() => {
                 stroke-linecap="round"
               />
             </svg>
-            {{ testingAi ? 'Testing...' : 'Test Connection' }}
+            {{ testingAi ? '正在测试...' : '测试连接' }}
           </button>
 
           <div
@@ -614,9 +614,9 @@ const storageTypeLabel = computed(() => {
           </svg>
         </div>
         <div>
-          <h2 class="section-title">File Storage</h2>
+          <h2 class="section-title">文件存储</h2>
           <p class="section-description">
-            Storage provider is configured via environment variables
+            存储服务通过环境变量配置
           </p>
         </div>
       </div>
@@ -633,15 +633,15 @@ const storageTypeLabel = computed(() => {
       <div v-else-if="filesStore.storageInfo" class="stats-row">
         <div class="stat-item">
           <span class="stat-value">{{ storageTypeLabel }}</span>
-          <span class="stat-label">Storage Type</span>
+          <span class="stat-label">存储类型</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ filesStore.storageInfo.totalFiles }}</span>
-          <span class="stat-label">Total Files</span>
+          <span class="stat-label">文件总数</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ formattedSize }}</span>
-          <span class="stat-label">Total Size</span>
+          <span class="stat-label">总大小</span>
         </div>
       </div>
 
@@ -681,7 +681,7 @@ const storageTypeLabel = computed(() => {
               stroke-linejoin="round"
             />
           </svg>
-          {{ testingConnection ? 'Testing...' : 'Test Connection' }}
+          {{ testingConnection ? '正在测试...' : '测试连接' }}
         </button>
 
         <div
@@ -739,8 +739,8 @@ const storageTypeLabel = computed(() => {
           </svg>
         </div>
         <div>
-          <h2 class="section-title">Backups</h2>
-          <p class="section-description">System and organisation backup configuration</p>
+          <h2 class="section-title">备份</h2>
+          <p class="section-description">系统和工作区备份配置</p>
         </div>
       </div>
 
@@ -752,17 +752,17 @@ const storageTypeLabel = computed(() => {
               class="status-dot"
               :class="backupsStore.settings.enabled ? 'dot-success' : 'dot-error'"
             ></span>
-            {{ backupsStore.settings.enabled ? 'Enabled' : 'Disabled' }}
+            {{ backupsStore.settings.enabled ? '已启用' : '已停用' }}
           </span>
-          <span class="stat-label">Scheduled Backups</span>
+          <span class="stat-label">计划备份</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ backupStorageLabel }}</span>
-          <span class="stat-label">Storage Type</span>
+          <span class="stat-label">存储类型</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ backupsStore.settings.schedule }}</span>
-          <span class="stat-label">Schedule</span>
+          <span class="stat-label">计划</span>
         </div>
       </div>
 
@@ -777,7 +777,7 @@ const storageTypeLabel = computed(() => {
               stroke-linejoin="round"
             />
           </svg>
-          Manage Backups
+          管理备份
         </button>
       </div>
     </section>

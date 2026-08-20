@@ -66,7 +66,7 @@ function handleKeydown(event: KeyboardEvent) {
           v-model="newPropertyName"
           class="add-property-input"
           type="text"
-          placeholder="Property name"
+          placeholder="属性名称"
           autofocus
           @keydown="handleKeydown"
         />
@@ -75,7 +75,7 @@ function handleKeydown(event: KeyboardEvent) {
             {{ pt.label }}
           </option>
         </select>
-        <button class="add-property-submit" @click="addProperty">Add</button>
+        <button class="add-property-submit" @click="addProperty">添加</button>
       </div>
     </div>
   </th>

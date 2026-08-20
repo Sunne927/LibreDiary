@@ -49,12 +49,12 @@ async function handleSubmit() {
   error.value = '';
 
   if (password.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match';
+    error.value = '两次输入的密码不一致';
     return;
   }
 
   if (password.value.length < 8) {
-    error.value = 'Password must be at least 8 characters';
+    error.value = '密码至少需要 8 个字符';
     return;
   }
 
@@ -67,7 +67,7 @@ async function handleSubmit() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Registration failed. Please try again.';
+    error.value = '注册失败，请重试。';
     }
   } finally {
     loading.value = false;

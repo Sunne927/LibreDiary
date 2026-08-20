@@ -150,7 +150,7 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
 <template>
   <div class="property-config-panel">
     <div class="config-header">
-      <span class="config-title">Configure property</span>
+      <span class="config-title">配置属性</span>
       <button class="config-close-btn" @click="emit('close')">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M4 4L10 10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
@@ -161,7 +161,7 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
 
     <!-- Property Name -->
     <div class="config-field">
-      <label class="config-label">Name</label>
+      <label class="config-label">名称</label>
       <input
         v-model="localName"
         class="config-name-input"
@@ -173,7 +173,7 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
 
     <!-- Property Type -->
     <div class="config-field">
-      <label class="config-label">Type</label>
+      <label class="config-label">类型</label>
       <select v-model="localType" class="config-type-select" @change="saveType">
         <option v-for="pt in propertyTypes" :key="pt.value" :value="pt.value">
           {{ pt.label }}
@@ -183,7 +183,7 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
 
     <!-- SELECT / MULTI_SELECT Options -->
     <div v-if="isSelectType" class="config-field select-options-editor">
-      <label class="config-label">Options</label>
+      <label class="config-label">选项</label>
       <div class="options-list">
         <div v-for="(option, idx) in localOptions" :key="idx" class="option-row">
           <input v-model="option.colour" type="color" class="option-colour" @change="saveOptions" />
@@ -214,17 +214,17 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
 
     <!-- NUMBER Format -->
     <div v-if="isNumberType" class="config-field">
-      <label class="config-label">Format</label>
+      <label class="config-label">格式</label>
       <select v-model="localNumberFormat" class="number-format-select" @change="saveNumberFormat">
-        <option value="number">Number</option>
-        <option value="percent">Percent</option>
-        <option value="currency">Currency</option>
+        <option value="number">数字</option>
+        <option value="percent">百分比</option>
+        <option value="currency">货币</option>
       </select>
     </div>
 
     <!-- FILES Allowed MIME Types -->
     <div v-if="isFilesType" class="config-field">
-      <label class="config-label">Allowed file types</label>
+      <label class="config-label">允许的文件类型</label>
       <input
         v-model="localAllowedMimeTypes"
         class="config-name-input"
@@ -233,28 +233,28 @@ const propertyTypes: Array<{ value: PropertyType; label: string }> = [
         @blur="saveAllowedMimeTypes"
         @keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
       />
-      <span class="config-hint">Comma-separated MIME types. Leave empty to allow all.</span>
+      <span class="config-hint">多个 MIME 类型请用逗号分隔，留空表示允许全部类型。</span>
     </div>
 
     <!-- DURATION Config -->
     <div v-if="isDurationType" class="config-field">
-      <label class="config-label">Precision</label>
+      <label class="config-label">精度</label>
       <select
         v-model="localDurationPrecision"
         class="config-type-select"
         @change="saveDurationConfig"
       >
-        <option value="seconds">Seconds (1h 23m 45s)</option>
-        <option value="minutes">Minutes (1h 23m)</option>
-        <option value="hours">Hours (1h)</option>
+        <option value="seconds">秒（1 小时 23 分 45 秒）</option>
+        <option value="minutes">分钟（1 小时 23 分）</option>
+        <option value="hours">小时（1 小时）</option>
       </select>
     </div>
 
     <div v-if="isDurationType" class="config-field">
-      <label class="config-label">Format</label>
+      <label class="config-label">格式</label>
       <select v-model="localDurationFormat" class="config-type-select" @change="saveDurationConfig">
-        <option value="hms">Hours, minutes, seconds</option>
-        <option value="decimal">Decimal hours (1.50h)</option>
+        <option value="hms">小时、分钟、秒</option>
+        <option value="decimal">小数小时（1.50 小时）</option>
       </select>
     </div>
 

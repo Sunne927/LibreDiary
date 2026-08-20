@@ -1,12 +1,13 @@
 import { prisma } from '../../lib/prisma.js';
-import { chatCompletion } from './ai.service.js';
+import { chatCompletion, chatCompletionStream } from './ai.service.js';
 
-export type WritingAction = 'generate' | 'expand' | 'summarise' | 'improve' | 'schedule' | 'todos';
+export type WritingAction = 'generate' | 'expand' | 'summarise' | 'improve' | 'custom' | 'schedule' | 'todos';
 
 export interface WriteTextInput {
   action: WritingAction;
   text: string;
   organizationId: string;
+  instruction?: string;
 }
 
 export interface WriteTextResult {
@@ -35,6 +36,10 @@ const SYSTEM_PROMPTS: Record<WritingAction, string> = {
 - Preserve the original tone and meaning
 - Fix grammar, spelling, and punctuation
 - Improve sentence structure and flow`,
+  custom: `Follow the user's editing instruction for the supplied text. Rules:
+- Return ONLY the edited or generated content, nothing else
+- Do not add meta-commentary, explanations, or notes
+- Preserve the source language unless the instruction requests a translation`,
   schedule: `You are a scheduling assistant. Generate a clear weekly or daily schedule as an HTML table. Rules:
 - Use <table>, <thead>, <tbody>, <tr>, <th>, <td> tags only
 - No prose, headings, or explanation outside the table
@@ -51,6 +56,7 @@ const TEMPERATURE: Record<WritingAction, number> = {
   expand: 0.3,
   summarise: 0.3,
   improve: 0.3,
+  custom: 0.4,
   schedule: 0.5,
   todos: 0.5,
 };
@@ -73,7 +79,10 @@ export async function writeText(input: WriteTextInput): Promise<WriteTextResult>
     result = await chatCompletion(
       [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: input.text },
+        { role: 'user', content: input.action === 'custom' ? `Instruction: ${input.instruction ?? ''}
+
+Text:
+${input.text}` : input.text },
       ],
       { temperature }
     );
@@ -93,4 +102,30 @@ export async function writeText(input: WriteTextInput): Promise<WriteTextResult>
   }
 
   return { content };
+}
+
+export async function* streamWriteText(input: WriteTextInput): AsyncGenerator<string> {
+  const org = await prisma.organization.findUnique({
+    where: { id: input.organizationId },
+    select: { aiEnabled: true },
+  });
+
+  if (!org || !org.aiEnabled) throw new Error('AI_DISABLED');
+
+  try {
+    yield* chatCompletionStream(
+      [
+        { role: 'system', content: SYSTEM_PROMPTS[input.action] },
+        { role: 'user', content: input.action === 'custom' ? `Instruction: ${input.instruction ?? ''}
+
+Text:
+${input.text}` : input.text },
+      ],
+      { temperature: TEMPERATURE[input.action] }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message === 'AI is disabled' || message === 'No API key configured') throw error;
+    throw new Error('WRITING_FAILED', { cause: error });
+  }
 }

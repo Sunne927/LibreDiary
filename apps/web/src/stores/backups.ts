@@ -42,7 +42,7 @@ export const useBackupsStore = defineStore('backups', () => {
       const data = await backupsService.listOrgBackups(orgId);
       orgBackups.value = data.backups;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load backups';
+      error.value = err instanceof Error ? err.message : '加载备份失败';
     } finally {
       loading.value = false;
     }
@@ -64,7 +64,7 @@ export const useBackupsStore = defineStore('backups', () => {
       orgBackups.value.unshift(data.backup);
       return data.backup;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to create backup';
+      error.value = err instanceof Error ? err.message : '创建备份失败';
       throw err;
     } finally {
       creating.value = false;
@@ -94,7 +94,7 @@ export const useBackupsStore = defineStore('backups', () => {
       const data = await backupsService.listAllBackups();
       allBackups.value = data.backups;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load backups';
+      error.value = err instanceof Error ? err.message : '加载备份失败';
     } finally {
       loading.value = false;
     }
@@ -115,7 +115,7 @@ export const useBackupsStore = defineStore('backups', () => {
       allBackups.value.unshift(data.backup);
       return data.backup;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to create system backup';
+      error.value = err instanceof Error ? err.message : '创建系统备份失败';
       throw err;
     } finally {
       creating.value = false;
@@ -128,7 +128,7 @@ export const useBackupsStore = defineStore('backups', () => {
       settings.value = data.settings;
       pgDumpAvailable.value = data.settings.pgDumpAvailable;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load backup settings';
+      error.value = err instanceof Error ? err.message : '加载备份设置失败';
     }
   }
 

@@ -40,7 +40,7 @@ function handleStop() {
       <div class="timer-task-row">
         <span class="timer-indicator" :class="{ pulsing: isRunning }" aria-hidden="true" />
         <span class="timer-task-name" :title="target?.taskName">{{ truncatedName }}</span>
-        <button class="timer-btn timer-btn--discard" aria-label="Discard timer" @click="discard">
+      <button class="timer-btn timer-btn--discard" aria-label="放弃计时" @click="discard">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path
               d="M3.5 3.5L10.5 10.5M10.5 3.5L3.5 10.5"
@@ -60,7 +60,7 @@ function handleStop() {
         <div class="timer-actions">
           <button
             class="timer-btn timer-btn--play-pause"
-            :aria-label="isPaused ? 'Resume timer' : 'Pause timer'"
+            :aria-label="isPaused ? '继续计时' : '暂停计时'"
             @click="handlePlayPause"
           >
             <!-- Pause icon -->
@@ -82,7 +82,7 @@ function handleStop() {
 
           <button
             class="timer-btn timer-btn--stop"
-            aria-label="Stop timer and save"
+            aria-label="停止计时并保存"
             @click="handleStop"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

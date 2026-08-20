@@ -87,10 +87,10 @@ async function handleUseTemplate(template: Template) {
     await pagesStore.fetchPageTree();
     showTemplateLibrary.value = false;
     router.push({ name: 'page', params: { pageId: page.id } });
-    toast.success(`Page created from "${template.name}"`);
+    toast.success(`已根据“${template.name}”创建页面`);
   } catch (e) {
     console.error('Failed to create page from template:', e);
-    toast.error('Failed to create page from template');
+    toast.error('根据模板创建页面失败');
   }
 }
 
@@ -103,7 +103,7 @@ function showComingSoon(feature: string) {
     title: t('dashboard.comingSoon'),
     message: `${feature} is coming soon! We're working hard to bring you this feature.`,
     variant: 'info',
-    confirmText: 'Got it',
+    confirmText: '知道了',
   });
 }
 </script>
@@ -323,7 +323,7 @@ function showComingSoon(feature: string) {
     <!-- Template Library Modal -->
     <Teleport to="body">
       <div v-if="showTemplateLibrary" class="modal-overlay" @click.self="closeTemplateLibrary">
-        <div class="template-modal" role="dialog" aria-modal="true" aria-label="Template Library">
+        <div class="template-modal" role="dialog" aria-modal="true" :aria-label="$t('templates.library')">
           <TemplateLibrary @use-template="handleUseTemplate" @close="closeTemplateLibrary" />
         </div>
       </div>
@@ -606,9 +606,11 @@ function showComingSoon(feature: string) {
 }
 
 .template-modal {
-  width: 100%;
+  width: min(560px, calc(100vw - 32px));
   max-width: 560px;
-  max-height: 80vh;
+  height: min(80vh, 760px);
+  max-height: calc(100dvh - 32px);
+  min-height: 0;
   overflow: hidden;
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
@@ -616,5 +618,13 @@ function showComingSoon(feature: string) {
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .template-modal {
+    width: calc(100vw - 20px);
+    height: calc(100dvh - 20px);
+    max-height: calc(100dvh - 20px);
+  }
 }
 </style>

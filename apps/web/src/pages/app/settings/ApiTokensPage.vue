@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useApiTokensStore } from '@/stores/api-tokens';
 import { useToast } from '@/composables';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -8,6 +9,8 @@ import type { ApiToken } from '@librediary/shared';
 
 const apiTokensStore = useApiTokensStore();
 const toast = useToast();
+const { locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
 
 const loading = ref(true);
 
@@ -27,7 +30,7 @@ const showConfirmDialog = ref(false);
 const confirmDialogConfig = ref({
   title: '',
   message: '',
-  confirmText: 'Confirm',
+  confirmText: '确认',
   variant: 'destructive' as 'default' | 'destructive',
   onConfirm: () => {},
 });
@@ -58,11 +61,11 @@ function getMinDate(): string {
 
 async function handleCreateToken() {
   if (!tokenName.value.trim()) {
-    nameError.value = 'Name is required';
+    nameError.value = '请输入名称';
     return;
   }
   if (tokenName.value.trim().length > 100) {
-    nameError.value = 'Name must be 100 characters or fewer';
+    nameError.value = isChinese.value ? '名称不能超过 100 个字符' : 'Name must be 100 characters or fewer';
     return;
   }
 
@@ -78,7 +81,7 @@ async function handleCreateToken() {
     showTokenModal.value = true;
   } catch (error) {
     console.error('Failed to create token:', error);
-    toast.error('Failed to create token');
+  toast.error('创建令牌失败');
   }
 }
 
@@ -86,28 +89,30 @@ async function copyToken() {
   try {
     await navigator.clipboard.writeText(rawToken.value);
     copied.value = true;
-    toast.success('Token copied to clipboard');
+  toast.success('令牌已复制到剪贴板');
     setTimeout(() => {
       copied.value = false;
     }, 2000);
   } catch {
-    toast.error('Failed to copy token');
+  toast.error('复制令牌失败');
   }
 }
 
 function confirmDelete(token: ApiToken) {
   confirmDialogConfig.value = {
-    title: 'Delete Token',
-    message: `Are you sure you want to delete "${token.name}"? Any applications using this token will lose access immediately.`,
-    confirmText: 'Delete Token',
+    title: isChinese.value ? '删除令牌' : 'Delete Token',
+    message: isChinese.value
+      ? `确定要删除“${token.name}”吗？使用此令牌的应用将立即失去访问权限。`
+      : `Are you sure you want to delete "${token.name}"? Any applications using this token will lose access immediately.`,
+    confirmText: isChinese.value ? '删除令牌' : 'Delete Token',
     variant: 'destructive',
     onConfirm: async () => {
       try {
         await apiTokensStore.deleteToken(token.id);
-        toast.success('Token deleted');
+        toast.success('令牌已删除');
       } catch (error) {
         console.error('Failed to delete token:', error);
-        toast.error('Failed to delete token');
+        toast.error('删除令牌失败');
       }
     },
   };
@@ -115,7 +120,7 @@ function confirmDelete(token: ApiToken) {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-GB', {
+  return new Date(dateString).toLocaleDateString(isChinese.value ? 'zh-CN' : 'en-GB', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -132,9 +137,9 @@ function isExpired(token: ApiToken): boolean {
   <div class="tokens-page">
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">API Tokens</h1>
+        <h1 class="page-title">{{ isChinese ? 'API 令牌' : 'API Tokens' }}</h1>
         <p class="page-description">
-          Create and manage personal API tokens for programmatic access
+          {{ isChinese ? '创建和管理用于程序访问的个人 API 令牌' : 'Create and manage personal API tokens for programmatic access' }}
         </p>
       </div>
       <button class="btn-primary" :disabled="apiTokensStore.creating" @click="openCreateModal">
@@ -165,7 +170,7 @@ function isExpired(token: ApiToken): boolean {
             stroke-linecap="round"
           />
         </svg>
-        {{ apiTokensStore.creating ? 'Creating...' : 'Create Token' }}
+        {{ apiTokensStore.creating ? (isChinese ? '正在创建...' : 'Creating...') : (isChinese ? '创建令牌' : 'Create Token') }}
       </button>
     </div>
 
@@ -174,12 +179,12 @@ function isExpired(token: ApiToken): boolean {
       <table class="data-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Token</th>
-            <th>Last Used</th>
-            <th>Expires</th>
-            <th>Created</th>
-            <th class="actions-col">Actions</th>
+            <th>{{ isChinese ? '名称' : 'Name' }}</th>
+            <th>{{ isChinese ? '令牌' : 'Token' }}</th>
+            <th>{{ isChinese ? '上次使用' : 'Last Used' }}</th>
+            <th>{{ isChinese ? '过期时间' : 'Expires' }}</th>
+            <th>{{ isChinese ? '创建时间' : 'Created' }}</th>
+            <th class="actions-col">{{ isChinese ? '操作' : 'Actions' }}</th>
           </tr>
         </thead>
         <tbody>
@@ -222,7 +227,7 @@ function isExpired(token: ApiToken): boolean {
                     stroke-dasharray="4 4"
                   />
                 </svg>
-                <span>No API tokens yet. Create your first token to get started.</span>
+                <span>{{ isChinese ? '暂无 API 令牌。创建第一个令牌即可开始。' : 'No API tokens yet' }}</span>
               </div>
             </td>
           </tr>
@@ -237,14 +242,14 @@ function isExpired(token: ApiToken): boolean {
             </td>
             <td>
               <span class="date-text">
-                {{ token.lastUsedAt ? formatDate(token.lastUsedAt) : 'Never' }}
+                {{ token.lastUsedAt ? formatDate(token.lastUsedAt) : (isChinese ? '从未使用' : 'Never') }}
               </span>
             </td>
             <td>
-              <span v-if="!token.expiresAt" class="date-text">Never</span>
+                <span v-if="!token.expiresAt" class="date-text">{{ isChinese ? '永不过期' : 'Never' }}</span>
               <span v-else class="date-text" :class="{ expired: isExpired(token) }">
                 {{ formatDate(token.expiresAt) }}
-                <span v-if="isExpired(token)" class="badge badge-error">Expired</span>
+                <span v-if="isExpired(token)" class="badge badge-error">{{ isChinese ? '已过期' : 'Expired' }}</span>
               </span>
             </td>
             <td>
@@ -254,7 +259,7 @@ function isExpired(token: ApiToken): boolean {
               <div class="actions">
                 <button
                   class="action-btn danger"
-                  title="Delete token"
+                  :title="isChinese ? '删除令牌' : 'Delete token'"
                   @click="confirmDelete(token)"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -288,24 +293,24 @@ function isExpired(token: ApiToken): boolean {
     <!-- Create Token Modal -->
     <BaseModal :open="showCreateModal" @close="showCreateModal = false">
       <div class="create-modal">
-        <h2 class="modal-title">Create API Token</h2>
-        <p class="modal-description">Tokens allow programmatic access to the API on your behalf.</p>
+        <h2 class="modal-title">创建 API 令牌</h2>
+        <p class="modal-description">令牌允许其他程序代表你访问 API。</p>
 
         <div class="form-field">
-          <label class="field-label" for="token-name">Name</label>
+          <label class="field-label" for="token-name">名称</label>
           <input
             id="token-name"
             v-model="tokenName"
             type="text"
             class="field-input"
-            placeholder="e.g. CI/CD Pipeline"
+            placeholder="例如：自动部署"
             maxlength="100"
           />
           <p v-if="nameError" class="field-error">{{ nameError }}</p>
         </div>
 
         <div class="form-field">
-          <label class="field-label" for="token-expiry">Expiry date (optional)</label>
+          <label class="field-label" for="token-expiry">过期日期（选填）</label>
           <input
             id="token-expiry"
             v-model="tokenExpiry"
@@ -313,12 +318,12 @@ function isExpired(token: ApiToken): boolean {
             class="field-input"
             :min="getMinDate()"
           />
-          <p class="field-hint">Leave empty for a token that never expires</p>
+          <p class="field-hint">留空则令牌永不过期</p>
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="handleCreateToken">Create Token</button>
+          <button class="btn btn-secondary" @click="showCreateModal = false">取消</button>
+          <button class="btn btn-primary" @click="handleCreateToken">创建令牌</button>
         </div>
       </div>
     </BaseModal>
@@ -326,9 +331,9 @@ function isExpired(token: ApiToken): boolean {
     <!-- Token Display Modal -->
     <BaseModal :open="showTokenModal" @close="showTokenModal = false">
       <div class="create-modal">
-        <h2 class="modal-title">Token Created</h2>
+        <h2 class="modal-title">令牌已创建</h2>
         <p class="modal-description warning-text">
-          Copy your token now. You won't be able to see it again.
+          {{ isChinese ? '请立即复制令牌，关闭后将无法再次查看。' : "Copy your token now. You won't be able to see it again." }}
         </p>
 
         <div class="token-display">
@@ -359,12 +364,12 @@ function isExpired(token: ApiToken): boolean {
                 stroke-linejoin="round"
               />
             </svg>
-            {{ copied ? 'Copied' : 'Copy' }}
+            {{ copied ? (isChinese ? '已复制' : 'Copied') : (isChinese ? '复制' : 'Copy') }}
           </button>
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-primary" @click="showTokenModal = false">Done</button>
+          <button class="btn btn-primary" @click="showTokenModal = false">完成</button>
         </div>
       </div>
     </BaseModal>

@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { OrgRole } from '@librediary/shared';
 
 const props = defineProps<{
   role: OrgRole;
   size?: 'sm' | 'md';
 }>();
+const { locale } = useI18n();
 
 const roleConfig = computed(() => {
   const configs: Record<OrgRole, { label: string; color: string }> = {
-    OWNER: { label: 'Owner', color: 'var(--color-warning)' },
-    ADMIN: { label: 'Admin', color: 'var(--color-accent)' },
-    MEMBER: { label: 'Member', color: 'var(--color-text-tertiary)' },
+    OWNER: { label: locale.value === 'zh-CN' ? '所有者' : 'Owner', color: 'var(--color-warning)' },
+    ADMIN: { label: locale.value === 'zh-CN' ? '管理员' : 'Admin', color: 'var(--color-accent)' },
+    MEMBER: { label: locale.value === 'zh-CN' ? '成员' : 'Member', color: 'var(--color-text-tertiary)' },
   };
   return configs[props.role];
 });

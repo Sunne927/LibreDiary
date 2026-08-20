@@ -17,7 +17,7 @@ export const useApiTokensStore = defineStore('api-tokens', () => {
       const data = await apiTokensService.listTokens();
       tokens.value = data.tokens;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load tokens';
+      error.value = err instanceof Error ? err.message : '加载令牌失败';
     } finally {
       loading.value = false;
     }
@@ -32,7 +32,7 @@ export const useApiTokensStore = defineStore('api-tokens', () => {
       tokens.value.unshift(data.token);
       return data.token;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to create token';
+      error.value = err instanceof Error ? err.message : '创建令牌失败';
       throw err;
     } finally {
       creating.value = false;
@@ -46,7 +46,7 @@ export const useApiTokensStore = defineStore('api-tokens', () => {
       await apiTokensService.deleteToken(tokenId);
       tokens.value = tokens.value.filter((t) => t.id !== tokenId);
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to delete token';
+      error.value = err instanceof Error ? err.message : '删除令牌失败';
       throw err;
     }
   }

@@ -79,7 +79,7 @@ function handleConfirm() {
         class="recovery-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Save your recovery key"
+        aria-label="保存恢复密钥"
       >
         <div class="recovery-modal__container">
           <div class="recovery-modal__content">
@@ -103,7 +103,7 @@ function handleConfirm() {
                   />
                 </svg>
               </div>
-              <h2 class="recovery-modal__title">Save Your Recovery Key</h2>
+              <h2 class="recovery-modal__title">保存恢复密钥</h2>
               <p class="recovery-modal__subtitle">
                 This key is the only way to recover your data if you forget your encryption
                 passphrase. It will not be shown again.

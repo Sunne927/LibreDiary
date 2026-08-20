@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ElementType } from './canvasTypes';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{ activeTool: ElementType | 'select' }>();
 const emit = defineEmits<{ 'update:activeTool': [tool: ElementType | 'select'] }>();
+const { locale } = useI18n();
 
 const tools: { id: ElementType | 'select'; label: string }[] = [
   { id: 'select', label: 'Select' },
@@ -12,6 +14,14 @@ const tools: { id: ElementType | 'select'; label: string }[] = [
   { id: 'arrow', label: 'Arrow' },
   { id: 'text', label: 'Text' },
 ];
+const labels: Record<string, string> = {
+  Select: '选择',
+  'Sticky Note': '便签',
+  Rectangle: '矩形',
+  Circle: '圆形',
+  Arrow: '箭头',
+  Text: '文字',
+};
 </script>
 
 <template>
@@ -21,7 +31,7 @@ const tools: { id: ElementType | 'select'; label: string }[] = [
       :key="tool.id"
       class="tool-btn"
       :class="{ active: props.activeTool === tool.id }"
-      :title="tool.label"
+      :title="locale === 'zh-CN' ? labels[tool.label] : tool.label"
       @click="emit('update:activeTool', tool.id)"
     >
       <!-- Select -->

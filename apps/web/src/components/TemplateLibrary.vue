@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useTemplatesStore } from '@/stores/templates';
 import type { Template } from '@librediary/shared';
 
@@ -9,6 +10,7 @@ const emit = defineEmits<{
 }>();
 
 const templatesStore = useTemplatesStore();
+const { locale } = useI18n();
 
 const allCategories = ['All', 'Meeting', 'Project', 'Personal', 'Team', 'Other'];
 const activeCategory = ref('All');
@@ -44,6 +46,52 @@ function getCategoryIcon(category: string | null): string {
       return '📄';
   }
 }
+
+const zhTemplateLabels: Record<string, { name: string; description: string }> = {
+  'Meeting Notes': { name: '会议纪要', description: '清晰整理议程、结论和待办事项。' },
+  'Project Tracker': { name: '项目进度', description: '规划里程碑、跟进任务，并掌握项目进展。' },
+  'Personal Journal': { name: '个人日记', description: '记录每天的想法、感受和成长。' },
+  'Team Wiki': { name: '知识库', description: '集中整理流程、规范和常用资料。' },
+  '1:1 Meeting': { name: '一对一沟通', description: '用于准备和记录定期的一对一交流。' },
+  'Weekly Status Report': { name: '每周进展', description: '快速汇总本周进展、下周计划和当前阻塞。' },
+  'Decision Log': { name: '决策记录', description: '记录重要决定、背景和最终依据。' },
+  'Interview Scorecard': { name: '面试评估表', description: '用统一标准记录候选人的面试表现。' },
+  'Sprint Retrospective': { name: '迭代复盘', description: '围绕开始、停止和继续，整理一次完整复盘。' },
+  'Incident Post-Mortem': { name: '事故复盘', description: '梳理事件经过、影响和后续改进措施。' },
+  'New Starter Onboarding': { name: '新人入职', description: '帮助新成员快速熟悉工作内容和常用资料。' },
+  'Reading Notes': { name: '阅读笔记', description: '记录书籍和文章中的重点、摘录与思考。' },
+  'Quarterly Goals': { name: '季度目标', description: '设定目标，并持续记录可衡量的结果。' },
+  'Travel Planner': { name: '旅行规划', description: '把行程、待办、行李和预算放在一起管理。' },
+  Recipe: { name: '食谱', description: '保存喜欢的食材、做法和备注。' },
+  'Event Planning': { name: '活动筹备', description: '用清单和时间线安排活动的每个环节。' },
+  'Pros and Cons': { name: '利弊分析', description: '把不同选择放在一起比较，帮助做出决定。' },
+  'SWOT Analysis': { name: 'SWOT 分析', description: '评估优势、劣势、机会和威胁。' },
+  'Standard Operating Procedure': { name: '标准作业流程', description: '把可重复执行的工作整理成清晰步骤。' },
+};
+
+function displayName(template: Template): string {
+  return locale.value === 'zh-CN' ? (zhTemplateLabels[template.name]?.name ?? template.name) : template.name;
+}
+
+function displayDescription(template: Template): string | undefined {
+  return locale.value === 'zh-CN'
+    ? (zhTemplateLabels[template.name]?.description ?? template.description ?? undefined)
+    : (template.description ?? undefined);
+}
+
+function displayCategory(category: string | null): string {
+  if (locale.value !== 'zh-CN' || !category) return category ?? '';
+  return ({
+    All: '全部',
+    Meeting: '会议',
+    Project: '项目',
+    Personal: '个人',
+    Team: '团队',
+    Work: '工作',
+    General: '通用',
+    Other: '其他',
+  } as Record<string, string>)[category] ?? category;
+}
 </script>
 
 <template>
@@ -51,7 +99,7 @@ function getCategoryIcon(category: string | null): string {
     <!-- Header -->
     <div class="library-header">
       <h2 class="library-title">{{ $t('templates.library') }}</h2>
-      <button class="close-btn" aria-label="Close" @click="$emit('close')">
+      <button class="close-btn" :aria-label="$t('common.close')" @click="$emit('close')">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path
             d="M15 5L5 15M5 5L15 15"
@@ -82,7 +130,7 @@ function getCategoryIcon(category: string | null): string {
       <input
         type="text"
         class="search-input"
-        placeholder="Search templates..."
+        :placeholder="locale === 'zh-CN' ? '搜索模板...' : 'Search templates...'"
         :value="templatesStore.searchQuery"
         @input="handleSearch"
       />
@@ -96,14 +144,14 @@ function getCategoryIcon(category: string | null): string {
         :class="['category-tab', { active: activeCategory === cat }]"
         @click="activeCategory = cat"
       >
-        {{ cat }}
+        {{ displayCategory(cat) }}
       </button>
     </div>
 
     <!-- Templates Grid -->
     <div v-if="templatesStore.loading" class="loading-state">
       <div class="spinner" />
-      <span>Loading templates...</span>
+      <span>{{ locale === 'zh-CN' ? '正在加载模板...' : 'Loading templates...' }}</span>
     </div>
 
     <div v-else-if="templatesStore.filteredTemplates.length === 0" class="empty-state">
@@ -122,8 +170,10 @@ function getCategoryIcon(category: string | null): string {
           <path d="M12 11V28" stroke="currentColor" stroke-width="1.5" />
         </svg>
       </div>
-      <p class="empty-text">No templates found</p>
-      <p class="empty-hint">Try adjusting your search or category filter</p>
+      <p class="empty-text">{{ locale === 'zh-CN' ? '没有找到模板' : 'No templates found' }}</p>
+      <p class="empty-hint">
+        {{ locale === 'zh-CN' ? '请调整搜索关键词或分类筛选' : 'Try adjusting your search or category filter' }}
+      </p>
     </div>
 
     <div v-else class="templates-grid">
@@ -137,14 +187,14 @@ function getCategoryIcon(category: string | null): string {
           {{ template.icon || getCategoryIcon(template.category) }}
         </div>
         <div class="template-info">
-          <h3 class="template-name">{{ template.name }}</h3>
+          <h3 class="template-name">{{ displayName(template) }}</h3>
           <p v-if="template.description" class="template-description">
-            {{ template.description }}
+            {{ displayDescription(template) }}
           </p>
         </div>
         <div class="template-meta">
-          <span v-if="template.category" class="category-badge">{{ template.category }}</span>
-          <span v-if="template.isBuiltIn" class="builtin-badge">Built-in</span>
+          <span v-if="template.category" class="category-badge">{{ displayCategory(template.category) }}</span>
+          <span v-if="template.isBuiltIn" class="builtin-badge">{{ locale === 'zh-CN' ? '内置' : 'Built-in' }}</span>
         </div>
       </button>
     </div>
@@ -156,6 +206,8 @@ function getCategoryIcon(category: string | null): string {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .library-header {
@@ -263,6 +315,7 @@ function getCategoryIcon(category: string | null): string {
   flex-direction: column;
   gap: var(--space-2);
   flex: 1;
+  min-height: 0;
   padding: var(--space-3) var(--space-5) var(--space-5);
   overflow-y: auto;
 }

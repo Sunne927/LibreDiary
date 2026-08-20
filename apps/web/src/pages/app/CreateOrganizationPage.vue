@@ -35,7 +35,7 @@ function handleNameChange() {
 
 async function handleSubmit() {
   if (!form.value.name.trim()) {
-    error.value = 'Organization name is required';
+    error.value = '请输入工作区名称';
     return;
   }
 
@@ -52,7 +52,7 @@ async function handleSubmit() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to create organization';
+      error.value = '创建工作区失败';
     }
   } finally {
     loading.value = false;
@@ -84,7 +84,7 @@ function handleCancel() {
             v-model="form.name"
             type="text"
             class="form-input"
-            placeholder="My Organization"
+            placeholder="我的工作区"
             :disabled="loading"
             @input="handleNameChange"
           />
@@ -99,13 +99,12 @@ function handleCancel() {
               v-model="form.slug"
               type="text"
               class="form-input slug-input"
-              placeholder="my-organization"
+              placeholder="工作区名称"
               :disabled="loading"
             />
           </div>
           <p class="form-help">
-            Used in URLs to identify your organization. Only lowercase letters, numbers, and
-            hyphens.
+            用于在网址中标识工作区，只能使用小写字母、数字和连字符。
           </p>
         </div>
 

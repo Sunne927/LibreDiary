@@ -17,7 +17,7 @@ function handleItemClick(id: string, route?: { name: string }) {
 </script>
 
 <template>
-  <section v-if="isVisible" class="checklist" aria-label="Getting started checklist">
+  <section v-if="isVisible" class="checklist" aria-label="开始使用清单">
     <!-- Header -->
     <div class="checklist-header">
       <div class="checklist-header-left">
@@ -39,10 +39,10 @@ function handleItemClick(id: string, route?: { name: string }) {
             stroke-linejoin="round"
           />
         </svg>
-        <h2 class="checklist-title">Getting started</h2>
+        <h2 class="checklist-title">开始使用</h2>
         <span class="checklist-counter">{{ completedCount }}/{{ totalCount }}</span>
       </div>
-      <button type="button" class="dismiss-btn" aria-label="Dismiss checklist" @click="dismiss">
+      <button type="button" class="dismiss-btn" :aria-label="$t('common.dismiss')" @click="dismiss">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path
             d="M3 3L11 11M11 3L3 11"

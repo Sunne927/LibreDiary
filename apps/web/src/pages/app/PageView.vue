@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onUnmounted, defineAsyncComponent } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { usePagesStore, useSyncStore, useAuthStore } from '@/stores';
 import { useCollaboration } from '@/composables';
-import { TiptapEditor, AiBubbleMenu } from '@/components/editor';
+import { TiptapEditor, EditorToolbar, BubbleToolbar } from '@/components/editor';
 import { useMarkdownExport } from '@/composables';
 import { usePagePanels } from '@/composables/usePagePanels';
 import { commentsService } from '@/services/comments.service';
@@ -21,6 +22,7 @@ const CommentsPanel = defineAsyncComponent(() => import('@/components/CommentsPa
 const pagesStore = usePagesStore();
 const syncStore = useSyncStore();
 const authStore = useAuthStore();
+const { t, locale } = useI18n();
 
 const props = defineProps<{
   pageId: string;
@@ -145,7 +147,7 @@ const {
     setTimeout(insertInitialContentIfEmpty, 150);
   },
   onAuthenticationFailed: (reason) => {
-    error.value = `Collaboration failed: ${reason}`;
+    error.value = `协作连接失败：${reason}`;
     loading.value = false;
   },
 });
@@ -295,7 +297,7 @@ async function loadPage() {
       }, 5000);
     }
   } catch (e) {
-    error.value = 'Failed to load page';
+  error.value = '加载页面失败';
     console.error(e);
     loading.value = false;
   }
@@ -385,23 +387,23 @@ function formatDate(dateString: string): string {
 
   // Less than a minute
   if (diff < 60000) {
-    return 'just now';
+    return '刚刚';
   }
 
   // Less than an hour
   if (diff < 3600000) {
     const minutes = Math.floor(diff / 60000);
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return `${minutes} 分钟前`;
   }
 
   // Less than a day
   if (diff < 86400000) {
     const hours = Math.floor(diff / 3600000);
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return `${hours} 小时前`;
   }
 
   // Format as date
-  return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString('zh-CN', {
     month: 'short',
     day: 'numeric',
     year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
@@ -411,10 +413,18 @@ function formatDate(dateString: string): string {
 
 <template>
   <div class="page-view">
-    <!-- Breadcrumbs -->
-    <div class="page-breadcrumbs">
-      <PageBreadcrumbs />
-    </div>
+    <!-- Editor toolbar (sticky full-width top bar) -->
+    <EditorToolbar
+      v-if="editorRef?.editor && !loading && !error"
+      :editor="editorRef.editor"
+      @import="importFromFile"
+    />
+
+    <div class="page-col">
+      <!-- Breadcrumbs -->
+      <div class="page-breadcrumbs">
+        <PageBreadcrumbs />
+      </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="page-loading">
@@ -429,14 +439,14 @@ function formatDate(dateString: string): string {
         <circle cx="24" cy="32" r="2" fill="currentColor" />
       </svg>
       <h2 class="error-title">{{ error }}</h2>
-      <button class="error-retry" @click="loadPage">Try again</button>
+      <button class="error-retry" @click="loadPage">{{ t('common.tryAgain') }}</button>
     </div>
 
     <!-- Page Content -->
     <div v-else class="page-content">
       <!-- Connection Status -->
       <div v-if="connectionError" class="connection-error">
-        <span>Connection error: {{ connectionError }}</span>
+        <span>连接失败：{{ connectionError }}</span>
       </div>
 
       <!-- Cover Image -->
@@ -450,7 +460,7 @@ function formatDate(dateString: string): string {
       <!-- Page Header -->
       <header class="page-header">
         <div class="icon-wrapper">
-          <button class="page-icon-btn" title="Change icon" @click="toggleEmojiPicker">
+          <button class="page-icon-btn" title="更换图标" @click="toggleEmojiPicker">
             <span class="page-icon">{{ pagesStore.currentPage?.icon ?? '📄' }}</span>
           </button>
           <div v-if="showEmojiPicker" class="emoji-picker-wrapper">
@@ -467,18 +477,18 @@ function formatDate(dateString: string): string {
           </h1>
           <div class="page-info">
             <span v-if="pagesStore.currentPage?.updatedAt" class="info-item">
-              Edited {{ formatDate(pagesStore.currentPage.updatedAt) }}
+              编辑于 {{ formatDate(pagesStore.currentPage.updatedAt) }}
             </span>
             <!-- Collaboration status -->
             <span v-if="isConnected" class="info-item collab-status">
               <span class="collab-dot"></span>
-              {{ connectedUsers.length }} editing
+              {{ connectedUsers.length }} {{ locale === 'zh-CN' ? '人正在编辑' : 'editing' }}
             </span>
             <!-- E2EE badge -->
             <span
               v-if="authStore.currentOrganization?.isEncrypted"
               class="info-item encrypted-badge"
-              title="End-to-end encrypted"
+              title="端到端加密"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <rect
@@ -497,7 +507,7 @@ function formatDate(dateString: string): string {
                   stroke-linecap="round"
                 />
               </svg>
-              Encrypted
+              已加密
             </span>
           </div>
         </div>
@@ -505,7 +515,7 @@ function formatDate(dateString: string): string {
           <button
             class="action-btn comments-btn"
             :class="{ 'has-comments': commentCount > 0 }"
-            title="Comments"
+            title="评论"
             @click="showCommentsPanel = true"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -519,7 +529,7 @@ function formatDate(dateString: string): string {
             </svg>
             <span v-if="commentCount > 0" class="comment-badge">{{ commentCount }}</span>
           </button>
-          <button class="action-btn" title="Version history" @click="showVersionHistory = true">
+          <button class="action-btn" title="版本历史" @click="showVersionHistory = true">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5" />
               <path
@@ -534,7 +544,7 @@ function formatDate(dateString: string): string {
           <button
             class="action-btn"
             :title="
-              editorRef?.editorMode === 'markdown' ? 'Switch to WYSIWYG' : 'Switch to Markdown'
+              editorRef?.editorMode === 'markdown' ? '切换到所见即所得' : '切换到 Markdown'
             "
             @click="editorRef?.toggleEditorMode()"
           >
@@ -559,7 +569,7 @@ function formatDate(dateString: string): string {
           </button>
           <button
             class="action-btn"
-            title="Export as Markdown"
+            title="导出 Markdown"
             @click="downloadAsMarkdown(`${pageTitle || 'untitled'}.md`)"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -572,7 +582,7 @@ function formatDate(dateString: string): string {
               />
             </svg>
           </button>
-          <button class="action-btn" title="Import Markdown" @click="importFromFile">
+          <button class="action-btn" title="导入 Markdown" @click="importFromFile">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path
                 d="M9 11.25v-9M12.75 6L9 2.25 5.25 6M3 12.75v1.5a1.5 1.5 0 001.5 1.5h9a1.5 1.5 0 001.5-1.5v-1.5"
@@ -583,7 +593,7 @@ function formatDate(dateString: string): string {
               />
             </svg>
           </button>
-          <button class="action-btn share-btn" title="Share page" @click="showShareModal = true">
+          <button class="action-btn share-btn" title="分享页面" @click="showShareModal = true">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <circle cx="14" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5" />
               <circle cx="14" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5" />
@@ -595,17 +605,18 @@ function formatDate(dateString: string): string {
                 stroke-linecap="round"
               />
             </svg>
-            <span>Share</span>
+            <span>分享</span>
           </button>
         </div>
       </header>
 
       <!-- Page Body -->
       <div class="page-body">
+        <BubbleToolbar v-if="editorRef?.editor" :editor="editorRef.editor" />
         <TiptapEditor
           ref="editorRef"
           v-model="pageContent"
-          placeholder="Start writing, or press '/' for commands..."
+          placeholder="开始记录，或输入“/”使用命令..."
           :collaborative="!!documentName"
           :ydoc="ydoc"
           :provider="provider"
@@ -615,8 +626,8 @@ function formatDate(dateString: string): string {
           :org-id="authStore.currentOrganizationId ?? undefined"
           @update:model-value="onContentUpdate"
         />
-        <AiBubbleMenu v-if="editorRef?.editor" :editor="editorRef.editor" />
       </div>
+    </div>
     </div>
 
     <!-- Share Modal -->
@@ -649,6 +660,11 @@ function formatDate(dateString: string): string {
 
 <style scoped>
 .page-view {
+  width: 100%;
+  padding: 0;
+}
+
+.page-col {
   max-width: 800px;
   margin: 0 auto;
   padding: var(--space-4) 0;

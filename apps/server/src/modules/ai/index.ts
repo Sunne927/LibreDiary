@@ -16,6 +16,7 @@ export { SUPPORTED_LANGUAGES } from './translation.routes.js';
 
 export {
   writeText,
+  streamWriteText,
   type WritingAction,
   type WriteTextInput,
   type WriteTextResult,

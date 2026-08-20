@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   getAuditLogs,
   getAuditLogActions,
@@ -13,6 +14,7 @@ const pagination = ref<Pagination | null>(null);
 const actions = ref<string[]>([]);
 const currentPage = ref(1);
 const itemsPerPage = 50;
+const { locale } = useI18n();
 
 // Filters
 const actionFilter = ref<string>('');
@@ -20,6 +22,13 @@ const actionFilter = ref<string>('');
 const totalPages = computed(() => pagination.value?.totalPages ?? 1);
 
 function formatActionLabel(action: string): string {
+  if (locale.value === 'zh-CN') {
+    const labels: Record<string, string> = {
+      CREATE: '创建', UPDATE: '更新', DELETE: '删除', LOGIN: '登录', LOGOUT: '退出登录',
+      INVITE: '邀请', ACCEPT: '接受', RESTORE: '恢复', EXPORT: '导出',
+    };
+    return action.split('_').map((word) => labels[word] ?? word).join('');
+  }
   return action
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -27,7 +36,7 @@ function formatActionLabel(action: string): string {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-GB', {
+  return new Date(dateString).toLocaleDateString(locale.value === 'zh-CN' ? 'zh-CN' : 'en-GB', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -37,8 +46,8 @@ function formatDate(dateString: string): string {
 }
 
 function getUserDisplay(log: AuditLogEntry): string {
-  if (!log.userId) return 'System';
-  if (!log.user) return 'Deleted user';
+  if (!log.userId) return locale.value === 'zh-CN' ? '系统' : 'System';
+  if (!log.user) return locale.value === 'zh-CN' ? '已删除用户' : 'Deleted user';
   if (log.user.name) return log.user.name;
   return log.user.email;
 }
@@ -102,8 +111,8 @@ onMounted(() => {
   <div class="admin-audit-logs">
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Audit Logs</h1>
-        <p class="page-description">Activity trail for security and compliance</p>
+        <h1 class="page-title">审计日志</h1>
+        <p class="page-description">记录与安全和合规相关的操作活动</p>
       </div>
     </div>
 
@@ -111,7 +120,7 @@ onMounted(() => {
     <div class="toolbar">
       <div class="filters">
         <select v-model="actionFilter" class="filter-action filter-select">
-          <option value="">All actions</option>
+          <option value="">全部操作</option>
           <option v-for="action in actions" :key="action" :value="action">
             {{ formatActionLabel(action) }}
           </option>
@@ -126,13 +135,13 @@ onMounted(() => {
               stroke-linecap="round"
             />
           </svg>
-          Clear filters
+          清除筛选
         </button>
       </div>
 
       <div class="toolbar-stats">
         <span v-if="pagination" class="stats-text">
-          {{ pagination.total }} {{ pagination.total === 1 ? 'entry' : 'entries' }}
+          {{ pagination.total }} {{ pagination.total === 1 ? '条记录' : '条记录' }}
         </span>
       </div>
     </div>
@@ -142,12 +151,12 @@ onMounted(() => {
       <table class="data-table">
         <thead>
           <tr>
-            <th>Timestamp</th>
-            <th>Action</th>
-            <th>User</th>
-            <th>Organisation</th>
-            <th>Resource</th>
-            <th>IP Address</th>
+            <th>时间</th>
+            <th>操作</th>
+            <th>用户</th>
+            <th>工作区</th>
+            <th>资源</th>
+            <th>IP 地址</th>
           </tr>
         </thead>
         <tbody>
@@ -184,7 +193,7 @@ onMounted(() => {
                     stroke-linecap="round"
                   />
                 </svg>
-                <span>No audit logs found</span>
+                <span>暂无审计日志</span>
               </div>
             </td>
           </tr>
@@ -243,7 +252,7 @@ onMounted(() => {
         </svg>
       </button>
 
-      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+      <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 页</span>
 
       <button
         class="page-btn page-btn-next"

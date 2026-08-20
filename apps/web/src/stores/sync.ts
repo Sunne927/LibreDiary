@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { i18n } from '@/i18n';
 
 export type SyncStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
@@ -62,15 +63,16 @@ export const useSyncStore = defineStore('sync', () => {
    * Human-readable status message
    */
   const statusMessage = computed(() => {
+    const isChinese = String(i18n.global.locale.value) === 'zh-CN';
     switch (status.value) {
       case 'pending':
-        return 'Waiting to save...';
+        return isChinese ? '等待保存...' : 'Waiting to save...';
       case 'saving':
-        return 'Saving...';
+        return isChinese ? '正在保存...' : 'Saving...';
       case 'saved':
-        return 'All changes saved';
+        return isChinese ? '所有更改已保存' : 'All changes saved';
       case 'error':
-        return 'Failed to save';
+        return isChinese ? '保存失败' : 'Failed to save';
       default:
         return '';
     }

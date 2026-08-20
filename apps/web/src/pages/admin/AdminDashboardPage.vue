@@ -62,7 +62,7 @@ async function loadStats() {
     stats.value = await adminService.getStats();
   } catch (error) {
     console.error('Failed to load stats:', error);
-    toast.error('Failed to load statistics');
+    toast.error('加载统计数据失败');
   } finally {
     loading.value = false;
   }
@@ -73,7 +73,7 @@ async function loadHealth() {
     health.value = await adminService.getSystemHealth();
   } catch (error) {
     console.error('Failed to load health:', error);
-    toast.error('Failed to load system health');
+    toast.error('加载系统状态失败');
   }
 }
 
@@ -100,8 +100,8 @@ function formatUptime(seconds: number): string {
 <template>
   <div class="admin-dashboard">
     <div class="page-header">
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-description">System overview and statistics</p>
+      <h1 class="page-title">仪表盘</h1>
+      <p class="page-description">系统概览和统计信息</p>
     </div>
 
     <!-- Loading State -->
@@ -131,11 +131,11 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.users.total }}</span>
-          <span class="stat-label">Total Users</span>
+          <span class="stat-label">用户总数</span>
         </div>
         <div class="stat-badge">
           <span class="badge-value">{{ stats.users.verified }}</span>
-          <span class="badge-label">verified</span>
+          <span class="badge-label">已验证</span>
         </div>
       </div>
 
@@ -153,7 +153,7 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.users.superAdmins }}</span>
-          <span class="stat-label">Super Admins</span>
+          <span class="stat-label">超级管理员</span>
         </div>
       </div>
 
@@ -186,11 +186,11 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.organizations.total }}</span>
-          <span class="stat-label">Organizations</span>
+          <span class="stat-label">工作区</span>
         </div>
         <div class="stat-badge success">
           <span class="badge-value">{{ stats.organizations.active }}</span>
-          <span class="badge-label">active</span>
+          <span class="badge-label">活跃</span>
         </div>
       </div>
 
@@ -223,7 +223,7 @@ function formatUptime(seconds: number): string {
           <span class="stat-value">{{
             stats.organizations.total - stats.organizations.active
           }}</span>
-          <span class="stat-label">Deleted Orgs</span>
+          <span class="stat-label">已删除工作区</span>
         </div>
       </div>
 
@@ -248,7 +248,7 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.pages }}</span>
-          <span class="stat-label">Pages</span>
+          <span class="stat-label">页面</span>
         </div>
       </div>
 
@@ -271,7 +271,7 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.databases }}</span>
-          <span class="stat-label">Databases</span>
+          <span class="stat-label">数据库</span>
         </div>
       </div>
 
@@ -290,7 +290,7 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.files.total }}</span>
-          <span class="stat-label">Files</span>
+          <span class="stat-label">文件</span>
         </div>
       </div>
 
@@ -313,7 +313,7 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.templates }}</span>
-          <span class="stat-label">Templates</span>
+          <span class="stat-label">模板</span>
         </div>
       </div>
 
@@ -339,22 +339,22 @@ function formatUptime(seconds: number): string {
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.backups }}</span>
-          <span class="stat-label">Backups</span>
+          <span class="stat-label">备份</span>
         </div>
       </div>
     </div>
 
     <!-- Storage Usage -->
     <div v-if="stats" class="section storage-section">
-      <h2 class="section-title">Storage Usage</h2>
+      <h2 class="section-title">存储使用情况</h2>
       <div class="storage-card">
         <div class="storage-info">
           <div class="storage-detail">
-            <span class="storage-detail-label">Total files</span>
+            <span class="storage-detail-label">文件总数</span>
             <span class="storage-detail-value">{{ stats.files.total }}</span>
           </div>
           <div class="storage-detail">
-            <span class="storage-detail-label">Total size</span>
+            <span class="storage-detail-label">总大小</span>
             <span class="storage-detail-value">{{ formatBytes(stats.files.totalSize) }}</span>
           </div>
         </div>
@@ -363,7 +363,7 @@ function formatUptime(seconds: number): string {
 
     <!-- System Health -->
     <div v-if="health" class="section health-section">
-      <h2 class="section-title">System Health</h2>
+      <h2 class="section-title">系统状态</h2>
       <div class="health-grid">
         <!-- Service statuses -->
         <div class="health-card">
@@ -373,24 +373,24 @@ function formatUptime(seconds: number): string {
                 class="health-dot"
                 :class="health.database.status === 'connected' ? 'connected' : 'disconnected'"
               ></span>
-              <span class="health-label">Database</span>
-              <span class="health-status">{{ health.database.status }}</span>
+              <span class="health-label">数据库</span>
+              <span class="health-status">{{ health.database.status === 'connected' ? '已连接' : '未连接' }}</span>
             </div>
             <div class="health-item">
               <span
                 class="health-dot"
                 :class="health.storage.status === 'connected' ? 'connected' : 'disconnected'"
               ></span>
-              <span class="health-label">Storage</span>
-              <span class="health-status">{{ health.storage.status }}</span>
+              <span class="health-label">文件存储</span>
+              <span class="health-status">{{ health.storage.status === 'connected' ? '已连接' : '未连接' }}</span>
             </div>
             <div class="health-item">
               <span
                 class="health-dot"
                 :class="health.collaboration.status === 'connected' ? 'connected' : 'disconnected'"
               ></span>
-              <span class="health-label">Collaboration</span>
-              <span class="health-status">{{ health.collaboration.status }}</span>
+              <span class="health-label">实时协作服务</span>
+              <span class="health-status">{{ health.collaboration.status === 'connected' ? '已连接' : '未连接' }}</span>
             </div>
           </div>
         </div>
@@ -399,7 +399,7 @@ function formatUptime(seconds: number): string {
         <div class="health-card">
           <div class="health-items">
             <div class="health-item">
-              <span class="health-item-label">Uptime</span>
+              <span class="health-item-label">运行时间</span>
               <span class="health-item-value">{{ formatUptime(health.server.uptime) }}</span>
             </div>
             <div class="health-item">
@@ -407,11 +407,11 @@ function formatUptime(seconds: number): string {
               <span class="health-item-value">{{ health.server.nodeVersion }}</span>
             </div>
             <div class="health-item">
-              <span class="health-item-label">Memory (RSS)</span>
+              <span class="health-item-label">内存（RSS）</span>
               <span class="health-item-value">{{ formatBytes(health.server.memory.rss) }}</span>
             </div>
             <div class="health-item">
-              <span class="health-item-label">Heap Used</span>
+              <span class="health-item-label">堆内存使用</span>
               <span class="health-item-value">{{
                 formatBytes(health.server.memory.heapUsed)
               }}</span>
@@ -423,7 +423,7 @@ function formatUptime(seconds: number): string {
 
     <!-- Quick Actions -->
     <div class="section">
-      <h2 class="section-title">Quick Actions</h2>
+      <h2 class="section-title">快捷操作</h2>
       <div class="actions-grid">
         <RouterLink :to="{ name: 'admin-users' }" class="action-card">
           <div class="action-icon">
@@ -444,8 +444,8 @@ function formatUptime(seconds: number): string {
             </svg>
           </div>
           <div class="action-content">
-            <span class="action-title">Manage Users</span>
-            <span class="action-description">View and manage all users</span>
+            <span class="action-title">管理用户</span>
+            <span class="action-description">查看和管理所有用户</span>
           </div>
           <div class="action-arrow">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -487,8 +487,8 @@ function formatUptime(seconds: number): string {
             </svg>
           </div>
           <div class="action-content">
-            <span class="action-title">Manage Organizations</span>
-            <span class="action-description">View and manage all organizations</span>
+            <span class="action-title">管理工作区</span>
+            <span class="action-description">查看和管理所有工作区</span>
           </div>
           <div class="action-arrow">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -521,8 +521,8 @@ function formatUptime(seconds: number): string {
             </svg>
           </div>
           <div class="action-content">
-            <span class="action-title">System Settings</span>
-            <span class="action-description">Configure system preferences</span>
+            <span class="action-title">系统设置</span>
+            <span class="action-description">配置系统偏好设置</span>
           </div>
           <div class="action-arrow">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

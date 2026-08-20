@@ -58,12 +58,12 @@ async function handleRecover() {
   error.value = null;
 
   if (newPassphrase.value.length < 8) {
-    error.value = 'Passphrase must be at least 8 characters.';
+    error.value = '加密口令至少需要 8 个字符。';
     return;
   }
 
   if (newPassphrase.value !== confirmPassphrase.value) {
-    error.value = 'Passphrases do not match.';
+    error.value = '两次输入的加密口令不一致。';
     return;
   }
 
@@ -76,9 +76,9 @@ async function handleRecover() {
     // Show new recovery key
     newRecoveryKeyValue.value = result.recoveryKey;
     showNewRecoveryKey.value = true;
-    toast.success('Encryption recovered successfully.');
+    toast.success('加密访问已恢复。');
   } catch {
-    error.value = 'Recovery failed. Please check your recovery key and try again.';
+    error.value = '恢复失败，请检查恢复密钥后重试。';
   } finally {
     recovering.value = false;
   }
@@ -106,7 +106,7 @@ function close() {
         class="recovery-flow-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Recover encryption access"
+        aria-label="恢复加密访问"
         @click.self="close"
         @keydown.escape="close"
       >
@@ -116,7 +116,7 @@ function close() {
             <button
               data-testid="recovery-close-btn"
               class="recovery-flow-modal__close"
-              aria-label="Close"
+              :aria-label="$t('common.close')"
               :disabled="recovering"
               @click="close"
             >
@@ -149,7 +149,7 @@ function close() {
                   />
                 </svg>
               </div>
-              <h2 class="recovery-flow-modal__title">Recover Encryption Access</h2>
+              <h2 class="recovery-flow-modal__title">恢复加密访问</h2>
               <div class="recovery-flow-modal__steps">
                 <span
                   class="recovery-flow-modal__step-dot"
@@ -170,10 +170,10 @@ function close() {
             <!-- Step 1: Recovery key input -->
             <div v-if="step === 1" class="recovery-flow-modal__step">
               <label for="recovery-key-field" class="recovery-flow-modal__label">
-                Recovery Key
+                恢复密钥
               </label>
               <p class="recovery-flow-modal__hint">
-                Enter the recovery key you saved when you first set up encryption.
+                输入你首次设置加密时保存的恢复密钥。
               </p>
               <textarea
                 id="recovery-key-field"
@@ -192,7 +192,7 @@ function close() {
                   class="recovery-flow-modal__btn recovery-flow-modal__btn--secondary"
                   @click="close"
                 >
-                  Cancel
+                  取消
                 </button>
                 <button
                   data-testid="recovery-next-btn"
@@ -201,7 +201,7 @@ function close() {
                   :disabled="!recoveryKeyInput.trim()"
                   @click="goToStep2"
                 >
-                  Next
+                  下一步
                 </button>
               </div>
             </div>
@@ -209,10 +209,10 @@ function close() {
             <!-- Step 2: New passphrase -->
             <div v-if="step === 2" class="recovery-flow-modal__step">
               <label for="new-passphrase-field" class="recovery-flow-modal__label">
-                New Passphrase
+                新的加密口令
               </label>
               <p class="recovery-flow-modal__hint">
-                Choose a new encryption passphrase. Minimum 8 characters.
+                设置新的加密口令，至少需要 8 个字符。
               </p>
               <input
                 id="new-passphrase-field"
@@ -220,7 +220,7 @@ function close() {
                 data-testid="new-passphrase-input"
                 type="password"
                 class="recovery-flow-modal__input"
-                placeholder="Enter new passphrase"
+                placeholder="输入新的加密口令"
                 autocomplete="new-password"
                 :disabled="recovering"
               />
@@ -229,7 +229,7 @@ function close() {
                 for="confirm-passphrase-field"
                 class="recovery-flow-modal__label recovery-flow-modal__label--spaced"
               >
-                Confirm Passphrase
+                确认加密口令
               </label>
               <input
                 id="confirm-passphrase-field"
@@ -237,7 +237,7 @@ function close() {
                 data-testid="confirm-passphrase-input"
                 type="password"
                 class="recovery-flow-modal__input"
-                placeholder="Confirm new passphrase"
+                placeholder="再次输入加密口令"
                 autocomplete="new-password"
                 :disabled="recovering"
               />

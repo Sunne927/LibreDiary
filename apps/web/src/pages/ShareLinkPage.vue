@@ -154,7 +154,7 @@ function onContentUpdate(newContent: string) {
                 stroke-linejoin="round"
               />
             </svg>
-            <span>Shared Link</span>
+            <span>分享链接</span>
           </div>
           <div v-if="page" class="header-badge permission" :class="{ editable: canEdit }">
             <svg v-if="canEdit" width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -182,7 +182,7 @@ function onContentUpdate(newContent: string) {
         <div class="orb-ring"></div>
         <div class="orb-inner"></div>
       </div>
-      <span class="loading-text">Loading shared page...</span>
+      <span class="loading-text">正在加载分享页面...</span>
     </div>
 
     <!-- Expired Token Error -->
@@ -333,7 +333,7 @@ function onContentUpdate(newContent: string) {
           <TiptapEditor
             :model-value="content"
             :editable="canEdit"
-            :placeholder="canEdit ? 'Start writing...' : ''"
+            :placeholder="canEdit ? '开始记录...' : ''"
             class="shared-editor"
             @update:model-value="onContentUpdate"
           />
@@ -346,7 +346,7 @@ function onContentUpdate(newContent: string) {
             <path d="M7 4V7.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
             <circle cx="7" cy="10" r="0.75" fill="currentColor" />
           </svg>
-          <span>You can edit this page. Changes are visible to everyone with this link.</span>
+          <span>你可以编辑此页面，修改内容对所有拥有该链接的人可见。</span>
         </div>
       </article>
     </main>
@@ -354,7 +354,7 @@ function onContentUpdate(newContent: string) {
     <!-- Footer -->
     <footer class="share-footer">
       <p class="footer-text">
-        Shared via <router-link to="/" class="footer-link">LibreDiary</router-link>
+        通过 <router-link to="/" class="footer-link">LibreDiary</router-link> 分享
       </p>
     </footer>
   </div>

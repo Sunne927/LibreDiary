@@ -338,8 +338,8 @@ async function handleMoveToTrash(page: Page | PageWithChildren) {
             <!-- New Canvas -->
             <button
               class="section-action"
-              title="New Canvas"
-              aria-label="Add new canvas"
+              :title="$t('sidebar.newCanvas')"
+              :aria-label="$t('sidebar.newCanvas')"
               @click="createNewCanvas()"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -566,7 +566,7 @@ async function handleMoveToTrash(page: Page | PageWithChildren) {
         </button>
         <button
           class="theme-toggle"
-          :title="`Theme: ${theme}`"
+          :title="$t('a11y.toggleTheme')"
           :aria-label="$t('a11y.toggleTheme')"
           @click="toggleTheme"
         >

@@ -117,7 +117,7 @@ async function handleDrop(event: DragEvent) {
       // Find the dragged page in the tree and check if target is its descendant
       const draggedPage = findPageInTree(pagesStore.pageTree, draggedPageId);
       if (draggedPage && isDescendant(draggedPage, props.page.id)) {
-        toast.error("Can't move a page into its own children");
+        toast.error('不能将页面移动到自己的子页面中');
         dropPosition.value = null;
         return;
       }
@@ -147,7 +147,7 @@ async function handleDrop(event: DragEvent) {
     }
   } catch (e) {
     console.error('Failed to move page:', e);
-    toast.error('Failed to move page');
+    toast.error('移动页面失败');
   }
 
   dropPosition.value = null;

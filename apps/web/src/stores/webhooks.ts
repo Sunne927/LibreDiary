@@ -34,7 +34,7 @@ export const useWebhooksStore = defineStore('webhooks', () => {
       const data = await webhooksService.listWebhooks(orgId);
       webhooks.value = data.webhooks;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load webhooks';
+      error.value = err instanceof Error ? err.message : '加载 Webhook 失败';
     } finally {
       loading.value = false;
     }
@@ -50,7 +50,7 @@ export const useWebhooksStore = defineStore('webhooks', () => {
       webhooks.value.unshift(data.webhook);
       return data.webhook;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to create webhook';
+      error.value = err instanceof Error ? err.message : '创建 Webhook 失败';
       throw err;
     } finally {
       creating.value = false;
@@ -69,7 +69,7 @@ export const useWebhooksStore = defineStore('webhooks', () => {
       }
       return data.webhook;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to update webhook';
+      error.value = err instanceof Error ? err.message : '更新 Webhook 失败';
       throw err;
     }
   }
@@ -82,7 +82,7 @@ export const useWebhooksStore = defineStore('webhooks', () => {
       await webhooksService.deleteWebhook(orgId, webhookId);
       webhooks.value = webhooks.value.filter((w) => w.id !== webhookId);
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to delete webhook';
+      error.value = err instanceof Error ? err.message : '删除 Webhook 失败';
       throw err;
     }
   }
@@ -95,7 +95,7 @@ export const useWebhooksStore = defineStore('webhooks', () => {
       const data = await webhooksService.testWebhook(orgId, webhookId);
       return data.delivery;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to test webhook';
+      error.value = err instanceof Error ? err.message : '测试 Webhook 失败';
       throw err;
     }
   }
@@ -110,7 +110,7 @@ export const useWebhooksStore = defineStore('webhooks', () => {
       deliveries.value = data.deliveries;
       deliveriesTotal.value = data.total;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load deliveries';
+      error.value = err instanceof Error ? err.message : '加载投递记录失败';
     } finally {
       loading.value = false;
     }

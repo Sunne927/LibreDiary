@@ -4,6 +4,7 @@ import AiInputDialog from '@/components/editor/AiInputDialog.vue';
 import { generateSchedule, generateTodos, createAiDatabase } from '@/services/ai-content.service';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/composables';
+import { i18n } from '@/i18n';
 
 /**
  * Helper to cast a chained command to access custom extension commands
@@ -48,6 +49,8 @@ function openAiDialog(
       container.remove();
     },
   });
+  // The dialog is mounted as a standalone app, so it needs the i18n plugin explicitly.
+  app.use(i18n);
   app.mount(container);
 }
 
@@ -263,9 +266,10 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       if (!orgId) return;
       openAiDialog(
         {
-          title: 'AI Database',
-          placeholder:
-            'Describe your database… e.g. "a project tracker with name, status, deadline, and priority"',
+          title: String(i18n.global.locale.value) === 'zh-CN' ? 'AI 数据库' : 'AI Database',
+          placeholder: String(i18n.global.locale.value) === 'zh-CN'
+            ? '描述你的数据库…例如“包含名称、状态、截止日期和优先级的项目追踪表”'
+            : 'Describe your database… e.g. "a project tracker with name, status, deadline, and priority"',
         },
         async (description) => {
           const { databaseId, name } = await createAiDatabase(orgId, description);
@@ -277,7 +281,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
               content: [
                 {
                   type: 'text',
-                  text: `${name} (AI-generated database)`,
+                  text: `${name} (${String(i18n.global.locale.value) === 'zh-CN' ? 'AI 生成的数据库' : 'AI-generated database'})`,
                   marks: [{ type: 'link', attrs: { href: `/app/database/${databaseId}` } }],
                 },
               ],
@@ -299,8 +303,10 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       if (!orgId) return;
       openAiDialog(
         {
-          title: 'AI Schedule',
-          placeholder: 'Describe your schedule… e.g. "a typical engineering sprint week"',
+          title: String(i18n.global.locale.value) === 'zh-CN' ? 'AI 日程' : 'AI Schedule',
+          placeholder: String(i18n.global.locale.value) === 'zh-CN'
+            ? '描述你的日程…例如“典型的工程冲刺周安排”'
+            : 'Describe your schedule… e.g. "a typical engineering sprint week"',
         },
         async (description) => {
           const { content } = await generateSchedule(orgId, description);
@@ -321,8 +327,10 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       if (!orgId) return;
       openAiDialog(
         {
-          title: 'AI To-Do List',
-          placeholder: 'Describe your goal… e.g. "tasks to launch a new mobile app"',
+          title: String(i18n.global.locale.value) === 'zh-CN' ? 'AI 待办清单' : 'AI To-Do List',
+          placeholder: String(i18n.global.locale.value) === 'zh-CN'
+            ? '描述你的目标…例如“发布一个新的移动应用需要完成的任务”'
+            : 'Describe your goal… e.g. "tasks to launch a new mobile app"',
         },
         async (description) => {
           const { content } = await generateTodos(orgId, description);

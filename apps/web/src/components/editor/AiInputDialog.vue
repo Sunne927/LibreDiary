@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   title: string;
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 
 const input = ref('');
 const inputRef = ref<HTMLTextAreaElement | null>(null);
+const { locale } = useI18n();
 
 onMounted(() => {
   inputRef.value?.focus();
@@ -50,11 +52,11 @@ function handleKeydown(e: KeyboardEvent) {
       <div class="ai-dialog-actions">
         <button class="ai-dialog-submit" :disabled="loading || !input.trim()" @click="handleSubmit">
           <span v-if="loading" class="ai-dialog-spinner" aria-hidden="true" />
-          <span>{{ loading ? 'Generating…' : 'Generate' }}</span>
+          <span>{{ loading ? (locale === 'zh-CN' ? '正在生成…' : 'Generating…') : (locale === 'zh-CN' ? '生成' : 'Generate') }}</span>
         </button>
-        <button class="ai-dialog-cancel" :disabled="loading" @click="emit('cancel')">Cancel</button>
+        <button class="ai-dialog-cancel" :disabled="loading" @click="emit('cancel')">{{ locale === 'zh-CN' ? '取消' : 'Cancel' }}</button>
       </div>
-      <p class="ai-dialog-hint">Enter ↵ to generate · Shift+Enter for new line · Esc to close</p>
+      <p class="ai-dialog-hint">{{ locale === 'zh-CN' ? '按 Enter 生成 · Shift+Enter 换行 · Esc 关闭' : 'Enter ↵ to generate · Shift+Enter for new line · Esc to close' }}</p>
     </div>
   </div>
 </template>

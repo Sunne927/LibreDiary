@@ -78,7 +78,7 @@ export const useFilesStore = defineStore('files', () => {
       files.value.unshift(data.file);
       return data.file;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Upload failed';
+    error.value = err instanceof Error ? err.message : '上传失败';
       throw err;
     } finally {
       uploading.value = false;
@@ -111,7 +111,7 @@ export const useFilesStore = defineStore('files', () => {
       const data = await filesService.listFiles(orgId, options);
       files.value = data.files;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load files';
+    error.value = err instanceof Error ? err.message : '加载文件失败';
     } finally {
       loading.value = false;
     }

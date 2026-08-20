@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useBackupsStore } from '@/stores/backups';
 import { useToast } from '@/composables';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -8,6 +9,8 @@ import type { Backup } from '@librediary/shared';
 
 const backupsStore = useBackupsStore();
 const toast = useToast();
+const { locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
 
 const loading = ref(true);
 
@@ -22,7 +25,7 @@ const showConfirmDialog = ref(false);
 const confirmDialogConfig = ref({
   title: '',
   message: '',
-  confirmText: 'Confirm',
+  confirmText: '确认',
   variant: 'destructive' as 'default' | 'destructive',
   onConfirm: () => {},
 });
@@ -42,11 +45,11 @@ onMounted(async () => {
 const storageTypeLabel = computed(() => {
   switch (backupsStore.settings?.storageType) {
     case 'LOCAL':
-      return 'Local Disk';
+      return isChinese.value ? '本地磁盘' : 'Local Disk';
     case 'S3':
-      return 'S3 Compatible';
+      return isChinese.value ? '兼容 S3' : 'S3 Compatible';
     default:
-      return backupsStore.settings?.storageType ?? 'Unknown';
+      return backupsStore.settings?.storageType ?? (isChinese.value ? '未知' : 'Unknown');
   }
 });
 
@@ -60,7 +63,7 @@ function openCreateModal() {
 
 async function handleCreateBackup() {
   if (encryptBackup.value && backupPassword.value.length < 8) {
-    passwordError.value = 'Password must be at least 8 characters';
+    passwordError.value = isChinese.value ? '密码至少需要 8 个字符' : 'Password must be at least 8 characters';
     return;
   }
 
@@ -71,10 +74,10 @@ async function handleCreateBackup() {
       encrypt: encryptBackup.value,
       password: encryptBackup.value ? backupPassword.value : undefined,
     });
-    toast.success('System backup created');
+    toast.success(isChinese.value ? '系统备份已创建' : 'System backup created');
   } catch (error) {
     console.error('Failed to create backup:', error);
-    toast.error('Failed to create system backup');
+    toast.error(isChinese.value ? '创建系统备份失败' : 'Failed to create system backup');
   }
 }
 
@@ -91,24 +94,26 @@ async function handleDownload(backup: Backup) {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Failed to download backup:', error);
-    toast.error('Failed to download backup');
+    toast.error(isChinese.value ? '下载备份失败' : 'Failed to download backup');
   }
 }
 
 function confirmDelete(backup: Backup) {
   confirmDialogConfig.value = {
-    title: 'Delete Backup',
-    message: `Are you sure you want to delete this ${backup.type === 'SYSTEM' ? 'system' : 'organisation'} backup? This action cannot be undone.`,
-    confirmText: 'Delete Backup',
+    title: isChinese.value ? '删除备份' : 'Delete Backup',
+    message: isChinese.value
+      ? `确定要删除这个${backup.type === 'SYSTEM' ? '系统' : '工作区'}备份吗？此操作无法撤销。`
+      : `Are you sure you want to delete this ${backup.type === 'SYSTEM' ? 'system' : 'organisation'} backup? This action cannot be undone.`,
+    confirmText: isChinese.value ? '删除备份' : 'Delete Backup',
     variant: 'destructive',
     onConfirm: async () => {
       try {
         await backupsStore.deleteOrgBackup(backup.id);
         await backupsStore.fetchAllBackups();
-        toast.success('Backup deleted');
+        toast.success(isChinese.value ? '备份已删除' : 'Backup deleted');
       } catch (error) {
         console.error('Failed to delete backup:', error);
-        toast.error('Failed to delete backup');
+        toast.error(isChinese.value ? '删除备份失败' : 'Failed to delete backup');
       }
     },
   };
@@ -116,13 +121,21 @@ function confirmDelete(backup: Backup) {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-GB', {
+  return new Date(dateString).toLocaleDateString(locale.value === 'zh-CN' ? 'zh-CN' : 'en-GB', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function statusLabel(status: string): string {
+  if (!isChinese.value) return status.replace('_', ' ');
+  const labels: Record<string, string> = {
+    PENDING: '等待中', IN_PROGRESS: '进行中', COMPLETED: '已完成', FAILED: '失败',
+  };
+  return labels[status] ?? status.replace('_', ' ');
 }
 
 function formatSize(bytes: number | null): string {
@@ -152,8 +165,8 @@ function statusClass(status: string): string {
   <div class="admin-backups">
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Backups</h1>
-        <p class="page-description">Manage system and organisation backups</p>
+        <h1 class="page-title">{{ isChinese ? '备份管理' : 'Backups' }}</h1>
+        <p class="page-description">{{ isChinese ? '管理系统和工作区备份' : 'Manage system and organisation backups' }}</p>
       </div>
       <button class="btn-primary" :disabled="backupsStore.creating" @click="openCreateModal">
         <svg
@@ -183,7 +196,7 @@ function statusClass(status: string): string {
             stroke-linecap="round"
           />
         </svg>
-        {{ backupsStore.creating ? 'Creating...' : 'Create System Backup' }}
+        {{ backupsStore.creating ? (isChinese ? '正在创建...' : 'Creating...') : (isChinese ? '创建系统备份' : 'Create System Backup') }}
       </button>
     </div>
 
@@ -209,8 +222,8 @@ function statusClass(status: string): string {
           </svg>
         </div>
         <div>
-          <h2 class="section-title">Backup Settings</h2>
-          <p class="section-description">Configuration is managed via environment variables</p>
+          <h2 class="section-title">{{ isChinese ? '备份设置' : 'Backup Settings' }}</h2>
+          <p class="section-description">{{ isChinese ? '备份配置通过环境变量管理' : 'Configuration is managed via environment variables' }}</p>
         </div>
       </div>
 
@@ -230,21 +243,21 @@ function statusClass(status: string): string {
               class="status-dot"
               :class="backupsStore.settings.enabled ? 'dot-success' : 'dot-error'"
             ></span>
-            {{ backupsStore.settings.enabled ? 'Enabled' : 'Disabled' }}
+            {{ backupsStore.settings.enabled ? (isChinese ? '已启用' : 'Enabled') : (isChinese ? '已停用' : 'Disabled') }}
           </span>
-          <span class="stat-label">Scheduled Backups</span>
+          <span class="stat-label">{{ isChinese ? '计划备份' : 'Scheduled Backups' }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ storageTypeLabel }}</span>
-          <span class="stat-label">Storage Type</span>
+          <span class="stat-label">{{ isChinese ? '存储类型' : 'Storage Type' }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ backupsStore.settings.schedule }}</span>
-          <span class="stat-label">Schedule (Cron)</span>
+          <span class="stat-label">{{ isChinese ? '执行计划（Cron）' : 'Schedule (Cron)' }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-value">{{ backupsStore.settings.retentionDays }}d</span>
-          <span class="stat-label">Retention</span>
+          <span class="stat-value">{{ backupsStore.settings.retentionDays }}{{ isChinese ? ' 天' : 'd' }}</span>
+          <span class="stat-label">{{ isChinese ? '保留天数' : 'Retention' }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">
@@ -252,7 +265,7 @@ function statusClass(status: string): string {
               class="status-dot"
               :class="backupsStore.settings.pgDumpAvailable ? 'dot-success' : 'dot-error'"
             ></span>
-            {{ backupsStore.settings.pgDumpAvailable ? 'Available' : 'Not Found' }}
+            {{ backupsStore.settings.pgDumpAvailable ? (isChinese ? '可用' : 'Available') : (isChinese ? '未找到' : 'Not Found') }}
           </span>
           <span class="stat-label">pg_dump</span>
         </div>
@@ -264,13 +277,13 @@ function statusClass(status: string): string {
       <table class="data-table">
         <thead>
           <tr>
-            <th>Type</th>
-            <th>Organisation</th>
-            <th>File Name</th>
-            <th>Size</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th class="actions-col">Actions</th>
+            <th>类型</th>
+            <th>工作区</th>
+            <th>文件名</th>
+            <th>大小</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th class="actions-col">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -307,7 +320,7 @@ function statusClass(status: string): string {
                     stroke-linejoin="round"
                   />
                 </svg>
-                <span>No backups yet</span>
+                <span>{{ isChinese ? '暂无备份' : 'No backups yet' }}</span>
               </div>
             </td>
           </tr>
@@ -319,7 +332,7 @@ function statusClass(status: string): string {
                 class="type-badge"
                 :class="backup.type === 'SYSTEM' ? 'type-system' : 'type-org'"
               >
-                {{ backup.type === 'SYSTEM' ? 'System' : 'Org' }}
+                {{ backup.type === 'SYSTEM' ? (isChinese ? '系统' : 'System') : (isChinese ? '工作区' : 'Org') }}
               </span>
             </td>
             <td>
@@ -329,7 +342,7 @@ function statusClass(status: string): string {
             </td>
             <td>
               <span class="file-name">{{ backup.fileName ?? '-' }}</span>
-              <span v-if="backup.isEncrypted" class="encrypted-badge" title="Encrypted">
+              <span v-if="backup.isEncrypted" class="encrypted-badge" title="已加密">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <rect
                     x="2"
@@ -354,7 +367,7 @@ function statusClass(status: string): string {
             </td>
             <td>
               <span class="badge" :class="statusClass(backup.status)">
-                {{ backup.status.replace('_', ' ') }}
+                {{ statusLabel(backup.status) }}
               </span>
             </td>
             <td>
@@ -365,7 +378,7 @@ function statusClass(status: string): string {
                 <button
                   v-if="backup.status === 'COMPLETED'"
                   class="action-btn"
-                  title="Download backup"
+                  title="下载备份"
                   @click="handleDownload(backup)"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -386,7 +399,7 @@ function statusClass(status: string): string {
                 </button>
                 <button
                   class="action-btn danger"
-                  title="Delete backup"
+                  title="删除备份"
                   @click="confirmDelete(backup)"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -420,35 +433,35 @@ function statusClass(status: string): string {
     <!-- Create Backup Modal -->
     <BaseModal :open="showCreateModal" @close="showCreateModal = false">
       <div class="create-modal">
-        <h2 class="modal-title">Create System Backup</h2>
-        <p class="modal-description">Create a full database backup using pg_dump.</p>
+        <h2 class="modal-title">{{ isChinese ? '创建系统备份' : 'Create System Backup' }}</h2>
+        <p class="modal-description">{{ isChinese ? '使用 pg_dump 创建完整的数据库备份。' : 'Create a full database backup using pg_dump.' }}</p>
 
         <div class="form-field">
           <label class="checkbox-label">
             <input v-model="encryptBackup" type="checkbox" class="checkbox" />
-            <span>Encrypt backup</span>
+            <span>{{ isChinese ? '加密备份' : 'Encrypt backup' }}</span>
           </label>
           <p class="field-hint">
-            Encrypt the backup with AES-256-GCM. You will need the password to restore.
+            {{ isChinese ? '使用 AES-256-GCM 加密备份。恢复备份时需要输入密码。' : 'Encrypt the backup with AES-256-GCM. You will need the password to restore.' }}
           </p>
         </div>
 
         <div v-if="encryptBackup" class="form-field">
-          <label class="field-label" for="backup-password">Password</label>
+          <label class="field-label" for="backup-password">{{ isChinese ? '密码' : 'Password' }}</label>
           <input
             id="backup-password"
             v-model="backupPassword"
             type="password"
             class="field-input"
-            placeholder="Minimum 8 characters"
+            placeholder="至少 8 个字符"
             autocomplete="new-password"
           />
           <p v-if="passwordError" class="field-error">{{ passwordError }}</p>
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="handleCreateBackup">Create Backup</button>
+          <button class="btn btn-secondary" @click="showCreateModal = false">{{ isChinese ? '取消' : 'Cancel' }}</button>
+          <button class="btn btn-primary" @click="handleCreateBackup">{{ isChinese ? '创建备份' : 'Create Backup' }}</button>
         </div>
       </div>
     </BaseModal>

@@ -59,7 +59,7 @@ function handleClearFilters() {
             stroke-linejoin="round"
           />
         </svg>
-        <span class="time-report__title">Time Report</span>
+        <span class="time-report__title">时间报告</span>
         <span v-if="!isOpen && summary.rowCount > 0" class="time-report__badge">
           {{ formatMs(summary.totalMs) }}
         </span>
@@ -91,7 +91,7 @@ function handleClearFilters() {
           v-if="durationProperties.length > 1"
           v-model="selectedPropertyId"
           class="time-report__select"
-          aria-label="Select duration property"
+          aria-label="选择时长属性"
         >
           <option v-for="prop in durationProperties" :key="prop.id" :value="prop.id">
             {{ prop.name }}
@@ -104,7 +104,7 @@ function handleClearFilters() {
             v-model="dateFrom"
             type="date"
             class="time-report__date-input"
-            aria-label="From date"
+            aria-label="开始日期"
             @change="onDateChange"
           />
           <span class="time-report__date-sep" aria-hidden="true">–</span>
@@ -112,13 +112,13 @@ function handleClearFilters() {
             v-model="dateTo"
             type="date"
             class="time-report__date-input"
-            aria-label="To date"
+            aria-label="结束日期"
             @change="onDateChange"
           />
           <button
             v-if="hasDateFilter"
             class="time-report__clear-btn"
-            aria-label="Clear date filters"
+            aria-label="清除日期筛选"
             @click="handleClearFilters"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -142,15 +142,15 @@ function handleClearFilters() {
         <!-- Summary cards -->
         <div class="time-report__cards">
           <div class="time-report__card">
-            <span class="time-report__card-label">Total</span>
+        <span class="time-report__card-label">总计</span>
             <span class="time-report__card-value">{{ formatMs(summary.totalMs) }}</span>
           </div>
           <div class="time-report__card">
-            <span class="time-report__card-label">Average</span>
+        <span class="time-report__card-label">平均</span>
             <span class="time-report__card-value">{{ formatMs(summary.averageMs) }}</span>
           </div>
           <div class="time-report__card">
-            <span class="time-report__card-label">Entries</span>
+        <span class="time-report__card-label">条目</span>
             <span class="time-report__card-value time-report__card-value--num">
               {{ summary.rowCount }}
             </span>
@@ -160,9 +160,9 @@ function handleClearFilters() {
         <!-- Per-user breakdown -->
         <div v-if="summary.perUser.length > 0" class="time-report__users">
           <div class="time-report__users-header">
-            <span>User</span>
-            <span>Time</span>
-            <span>Entries</span>
+        <span>用户</span>
+        <span>时间</span>
+        <span>条目</span>
           </div>
           <div v-for="entry in summary.perUser" :key="entry.userId" class="time-report__user-row">
             <span class="time-report__user-name">{{ entry.userName }}</span>
@@ -171,7 +171,7 @@ function handleClearFilters() {
           </div>
         </div>
 
-        <div v-else class="time-report__empty">No tracked time in the current view.</div>
+        <div v-else class="time-report__empty">当前视图没有记录的时间。</div>
 
         <!-- Export -->
         <button

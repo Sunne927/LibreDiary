@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onUnmounted, shallowRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { usePagesStore, useAuthStore } from '@/stores';
 import { useCollaboration } from '@/composables';
 import PageBreadcrumbs from '@/components/PageBreadcrumbs.vue';
@@ -12,6 +13,7 @@ const props = defineProps<{ canvasId: string }>();
 
 const pagesStore = usePagesStore();
 const authStore = useAuthStore();
+const { locale } = useI18n();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -35,7 +37,7 @@ const {
   enabled: () => !!documentName.value,
   onSynced: () => { loading.value = false; },
   onAuthenticationFailed: (reason) => {
-    error.value = `Collaboration failed: ${reason}`;
+    error.value = `协作连接失败：${reason}`;
     loading.value = false;
   },
 });
@@ -66,7 +68,7 @@ async function loadCanvas() {
     pagesStore.expandToPage(props.canvasId);
     setTimeout(() => { if (loading.value) loading.value = false; }, 5000);
   } catch {
-    error.value = 'Failed to load canvas';
+    error.value = '加载画布失败';
     loading.value = false;
   }
 }
@@ -102,7 +104,7 @@ function exportPng() {
     <!-- Error -->
     <div v-else-if="error" class="canvas-error">
       <p>{{ error }}</p>
-      <button @click="loadCanvas">Try again</button>
+      <button @click="loadCanvas">重试</button>
     </div>
 
     <template v-else>
@@ -119,23 +121,23 @@ function exportPng() {
           <div class="canvas-info">
             <span v-if="isConnected" class="collab-status">
               <span class="collab-dot" />
-              {{ connectedUsers.length }} editing
+              {{ connectedUsers.length }} {{ locale === 'zh-CN' ? '人正在编辑' : 'editing' }}
             </span>
           </div>
         </div>
         <div class="canvas-actions">
-          <button class="action-btn" title="Export as PNG" @click="exportPng">
+          <button class="action-btn" title="导出 PNG" @click="exportPng">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M9 2.25v9M5.25 7.5L9 11.25l3.75-3.75M3 12.75v1.5a1.5 1.5 0 001.5 1.5h9a1.5 1.5 0 001.5-1.5v-1.5"
                 stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>Export PNG</span>
+            <span>导出 PNG</span>
           </button>
         </div>
       </header>
 
       <div v-if="connectionError" class="connection-error">
-        Connection error: {{ connectionError }}
+        连接失败：{{ connectionError }}
       </div>
 
       <!-- Canvas area -->

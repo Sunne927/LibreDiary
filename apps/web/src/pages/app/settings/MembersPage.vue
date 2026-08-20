@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores';
 import { useOrganizationsStore } from '@/stores/organizations';
 import { ApiError } from '@/services';
@@ -22,6 +23,7 @@ function fromBase64(b64: string): Uint8Array {
 
 const authStore = useAuthStore();
 const orgsStore = useOrganizationsStore();
+const { locale } = useI18n();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -67,7 +69,7 @@ async function loadData() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to load members';
+      error.value = locale.value === 'zh-CN' ? '加载成员失败' : 'Failed to load members';
     }
   } finally {
     loading.value = false;
@@ -129,7 +131,7 @@ async function handleRoleChange() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to update role';
+      error.value = locale.value === 'zh-CN' ? '更新角色失败' : 'Failed to update role';
     }
     actionLoading.value = false;
   }
@@ -149,7 +151,7 @@ async function handleRemoveMember() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to remove member';
+      error.value = locale.value === 'zh-CN' ? '移除成员失败' : 'Failed to remove member';
     }
     actionLoading.value = false;
   }
@@ -166,7 +168,7 @@ async function handleCancelInvite(inviteId: string) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to cancel invite';
+      error.value = locale.value === 'zh-CN' ? '取消邀请失败' : 'Failed to cancel invite';
     }
   } finally {
     inviteActionLoading.value = null;
@@ -184,7 +186,7 @@ async function handleResendInvite(inviteId: string) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to resend invite';
+      error.value = locale.value === 'zh-CN' ? '重新发送邀请失败' : 'Failed to resend invite';
     }
   } finally {
     inviteActionLoading.value = null;
@@ -201,12 +203,12 @@ const selectedMemberInfo = computed(() => {
 const availableRoles = computed<{ value: OrgRole; label: string }[]>(() => {
   if (orgsStore.isOwner) {
     return [
-      { value: 'MEMBER', label: 'Member' },
-      { value: 'ADMIN', label: 'Admin' },
-      { value: 'OWNER', label: 'Owner' },
+      { value: 'MEMBER', label: locale.value === 'zh-CN' ? '成员' : 'Member' },
+      { value: 'ADMIN', label: locale.value === 'zh-CN' ? '管理员' : 'Admin' },
+      { value: 'OWNER', label: locale.value === 'zh-CN' ? '所有者' : 'Owner' },
     ];
   }
-  return [{ value: 'MEMBER', label: 'Member' }];
+  return [{ value: 'MEMBER', label: locale.value === 'zh-CN' ? '成员' : 'Member' }];
 });
 
 // Filter pending invites
@@ -221,10 +223,17 @@ function formatRelativeTime(dateString: string): string {
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (locale.value === 'zh-CN') {
+    if (diffDays === 0) return '今天';
+    if (diffDays === 1) return '昨天';
+    if (diffDays < 7) return `${diffDays} 天前`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} 周前`;
+  } else {
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  }
   return date.toLocaleDateString();
 }
 
@@ -238,7 +247,7 @@ async function handleGrantAccess(member: PendingMember) {
   try {
     const orgId = authStore.currentOrganizationId!;
     const workspaceKey = await getWorkspaceKey(orgId);
-    if (!workspaceKey) throw new Error('Could not retrieve workspace key');
+    if (!workspaceKey) throw new Error(locale.value === 'zh-CN' ? '无法获取工作区密钥' : 'Could not retrieve workspace key');
 
     const status = await encryptionService.getStatus();
     const recipientPublicKey = fromBase64(member.publicKey);
@@ -261,7 +270,7 @@ async function handleGrantAccess(member: PendingMember) {
     if (err instanceof Error) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to grant encryption access';
+      error.value = locale.value === 'zh-CN' ? '授予加密访问权限失败' : 'Failed to grant encryption access';
     }
   } finally {
     grantingAccessFor.value = null;
@@ -284,7 +293,7 @@ function isExpiringSoon(expiresAt: string): boolean {
       <div class="header-content">
         <h1 class="page-title">{{ $t('settings.members') }}</h1>
         <p class="page-subtitle">
-          Manage who has access to {{ authStore.currentOrganization?.name }}
+          {{ locale === 'zh-CN' ? '管理有权访问' : 'Manage who has access to ' }}{{ authStore.currentOrganization?.name }}{{ locale === 'zh-CN' ? '的成员' : '' }}
         </p>
       </div>
       <button
@@ -325,12 +334,9 @@ function isExpiringSoon(expiresAt: string): boolean {
         </svg>
         <span class="banner-text">
           <strong
-            >{{ pendingEncryptionMembers.length }} member{{
-              pendingEncryptionMembers.length !== 1 ? 's' : ''
-            }}</strong
+            >{{ locale === 'zh-CN' ? `${pendingEncryptionMembers.length} 名成员` : `${pendingEncryptionMembers.length} members` }}</strong
           >
-          {{ pendingEncryptionMembers.length !== 1 ? 'do' : 'does' }} not yet have encryption
-          access.
+          尚未获得加密访问权限。
         </span>
       </div>
       <div v-if="isUnlocked" class="pending-members-list">
@@ -350,9 +356,9 @@ function isExpiringSoon(expiresAt: string): boolean {
             :disabled="grantingAccessFor === member.userId"
             @click="handleGrantAccess(member)"
           >
-            {{ grantingAccessFor === member.userId ? 'Granting...' : 'Grant Access' }}
+            {{ grantingAccessFor === member.userId ? '正在授权...' : '授予访问权限' }}
           </button>
-          <span v-else class="pending-member-no-setup">Setup required</span>
+          <span v-else class="pending-member-no-setup">{{ locale === 'zh-CN' ? '需要先完成设置' : 'Setup required' }}</span>
         </div>
       </div>
     </div>
@@ -556,7 +562,7 @@ function isExpiringSoon(expiresAt: string): boolean {
           </div>
 
           <div v-if="orgsStore.members.length === 0" class="empty-state">
-            <p>No members found</p>
+            <p>{{ locale === 'zh-CN' ? '暂无成员' : 'No members found' }}</p>
           </div>
         </div>
       </section>
@@ -583,13 +589,13 @@ function isExpiringSoon(expiresAt: string): boolean {
             </div>
             <div class="modal-body">
               <p class="modal-text">
-                Change role for
+                {{ locale === 'zh-CN' ? '更改以下成员的角色：' : 'Change role for' }}
                 <strong>{{
                   selectedMemberInfo?.user.name || selectedMemberInfo?.user.email
                 }}</strong>
               </p>
               <div class="form-group">
-                <label for="new-role" class="form-label">Role</label>
+                <label for="new-role" class="form-label">角色</label>
                 <select
                   id="new-role"
                   v-model="newRole"

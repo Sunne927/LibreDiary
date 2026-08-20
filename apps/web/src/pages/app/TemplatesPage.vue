@@ -15,10 +15,10 @@ async function handleUseTemplate(template: Template) {
     const page = await templatesStore.createPageFromTemplate(template.id);
     await pagesStore.fetchPageTree();
     router.push({ name: 'page', params: { pageId: page.id } });
-    toast.success(`Page created from "${template.name}"`);
+    toast.success(`已根据“${template.name}”创建页面`);
   } catch (e) {
     console.error('Failed to create page from template:', e);
-    toast.error('Failed to create page from template');
+    toast.error('根据模板创建页面失败');
   }
 }
 

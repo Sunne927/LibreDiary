@@ -35,7 +35,7 @@ async function loadDatabase() {
   try {
     await databasesStore.fetchDatabase(props.databaseId);
   } catch (e) {
-    error.value = 'Failed to load database';
+    error.value = '加载数据库失败';
     console.error(e);
   } finally {
     loading.value = false;

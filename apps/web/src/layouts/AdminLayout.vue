@@ -100,7 +100,7 @@ async function handleLogout() {
           </div>
           <div class="brand-text">
             <span class="brand-name">LibreDiary</span>
-            <span class="brand-badge">Admin</span>
+            <span class="brand-badge">管理</span>
           </div>
         </div>
       </div>
@@ -334,7 +334,7 @@ async function handleLogout() {
             />
             <path d="M6 8H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
           </svg>
-          <span>Exit Admin</span>
+          <span>退出管理</span>
         </button>
       </div>
     </aside>
@@ -363,7 +363,7 @@ async function handleLogout() {
           </button>
 
           <!-- Breadcrumbs -->
-          <nav class="breadcrumbs" aria-label="Breadcrumb">
+          <nav class="breadcrumbs" aria-label="面包屑导航">
             <ol class="breadcrumb-list">
               <li v-for="(crumb, index) in breadcrumbs" :key="crumb.name" class="breadcrumb-item">
                 <RouterLink
@@ -394,7 +394,7 @@ async function handleLogout() {
           <!-- Theme Toggle -->
           <button
             class="header-btn"
-            :title="`Theme: ${theme}`"
+            title="切换颜色主题"
             :aria-label="t('a11y.toggleTheme')"
             @click="toggleTheme"
           >
@@ -429,11 +429,11 @@ async function handleLogout() {
             </div>
             <div class="user-info">
               <span class="user-name">{{ authStore.user?.name ?? 'Admin' }}</span>
-              <span class="user-role">Super Admin</span>
+              <span class="user-role">超级管理员</span>
             </div>
             <button
               class="logout-btn"
-              title="Logout"
+              title="退出登录"
               :aria-label="t('auth.signOut')"
               @click="handleLogout"
             >

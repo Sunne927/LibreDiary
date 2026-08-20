@@ -17,7 +17,7 @@ onMounted(async () => {
   try {
     await pagesStore.fetchTrashedPages();
   } catch (e) {
-    error.value = 'Failed to load trashed pages';
+    error.value = '加载回收站页面失败';
     console.error(e);
   }
 });
@@ -28,7 +28,7 @@ async function handleRestore(page: Page) {
   try {
     await pagesStore.restorePage(page.id);
   } catch (e) {
-    error.value = 'Failed to restore page';
+    error.value = '恢复页面失败';
     console.error(e);
   } finally {
     restoring.value.delete(page.id);
@@ -41,7 +41,7 @@ async function handleDelete(page: Page) {
     message: t('trash.permanentlyDeleteConfirm', { title: page.title }),
     variant: 'destructive',
     confirmText: t('common.delete'),
-    cancelText: 'Cancel',
+    cancelText: t('common.cancel'),
   });
 
   if (!confirmed) {
@@ -53,7 +53,7 @@ async function handleDelete(page: Page) {
   try {
     await pagesStore.permanentlyDeletePage(page.id);
   } catch (e) {
-    error.value = 'Failed to delete page';
+    error.value = '删除页面失败';
     console.error(e);
   } finally {
     deleting.value.delete(page.id);

@@ -18,7 +18,7 @@ function getIcon(type: 'success' | 'error' | 'info' | 'warning') {
 
 <template>
   <Teleport to="body">
-    <div class="toast-container" role="region" aria-label="Notifications" aria-live="polite">
+    <div class="toast-container" role="region" aria-label="通知" aria-live="polite">
       <TransitionGroup name="toast">
         <div
           v-for="toast in toasts"

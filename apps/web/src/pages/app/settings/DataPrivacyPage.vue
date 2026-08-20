@@ -65,7 +65,7 @@ async function requestExport() {
         error.value = e.message;
       }
     } else {
-      error.value = 'Failed to request export';
+    error.value = '申请数据导出失败';
     }
   } finally {
     exportRequesting.value = false;
@@ -86,7 +86,7 @@ async function downloadExport(exp: DataExport) {
     URL.revokeObjectURL(url);
   } catch (e) {
     console.error('Failed to download export:', e);
-    toast.error('Failed to download export');
+    toast.error('下载导出文件失败');
   } finally {
     downloadingId.value = null;
   }
@@ -185,7 +185,7 @@ async function handleDeleteAccount() {
         error.value = e.message;
       }
     } else {
-      error.value = 'Failed to request account deletion';
+    error.value = '申请删除账户失败';
     }
   } finally {
     deletionSubmitting.value = false;
@@ -204,7 +204,7 @@ async function handleCancelDeletion() {
     if (e instanceof ApiError) {
       error.value = e.message;
     } else {
-      error.value = 'Failed to cancel deletion';
+    error.value = '取消删除账户失败';
     }
   } finally {
     cancellingDeletion.value = false;

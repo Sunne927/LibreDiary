@@ -184,12 +184,12 @@ function onDraftBlur() {
             stroke-width="1.2"
           />
         </svg>
-        <span class="group-by-label">Group by</span>
+        <span class="group-by-label">分组依据</span>
         <select
           class="group-by-select"
           @change="setGroupBy(($event.target as HTMLSelectElement).value)"
         >
-          <option value="" disabled selected>Select a property</option>
+          <option value="" disabled selected>选择属性</option>
           <option v-for="prop in selectProperties" :key="prop.id" :value="prop.id">
             {{ prop.name }}
           </option>
@@ -199,7 +199,7 @@ function onDraftBlur() {
 
     <!-- Group-by bar when configured -->
     <div v-else class="kanban-group-by-bar">
-      <span class="group-by-label">Group by</span>
+      <span class="group-by-label">分组依据</span>
       <select
         class="group-by-select"
         :value="groupByPropertyId"
@@ -272,7 +272,7 @@ function onDraftBlur() {
               v-model="draftCard.title"
               class="draft-card-input"
               type="text"
-              placeholder="Untitled"
+              placeholder="未命名"
               autofocus
               @keydown="saveDraftCard"
               @blur="onDraftBlur"

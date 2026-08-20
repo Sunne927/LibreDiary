@@ -86,7 +86,7 @@ async function handleDrop(event: DragEvent, targetFavId: string) {
     await pagesStore.reorderFavorites(orderedIds);
   } catch (e) {
     console.error('Failed to reorder favorites:', e);
-    toast.error('Failed to reorder favorites');
+    toast.error('调整收藏顺序失败');
   }
 
   dragOverId.value = null;

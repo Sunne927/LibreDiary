@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useWebhooksStore } from '@/stores/webhooks';
 import { useToast } from '@/composables';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
@@ -8,6 +9,8 @@ import type { Webhook, CreateWebhookInput, UpdateWebhookInput } from '@librediar
 
 const webhooksStore = useWebhooksStore();
 const toast = useToast();
+const { locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
 
 const loading = ref(true);
 
@@ -68,7 +71,7 @@ const showConfirmDialog = ref(false);
 const confirmDialogConfig = ref({
   title: '',
   message: '',
-  confirmText: 'Confirm',
+  confirmText: '确认',
   variant: 'destructive' as 'default' | 'destructive',
   onConfirm: () => {},
 });
@@ -104,22 +107,22 @@ function validateCreateForm(): boolean {
   createErrors.events = '';
 
   if (!createForm.name.trim()) {
-    createErrors.name = 'Name is required';
+    createErrors.name = isChinese.value ? '请输入名称' : 'Name is required';
     valid = false;
   }
   if (!createForm.url.trim()) {
-    createErrors.url = 'URL is required';
+    createErrors.url = isChinese.value ? '请输入网址' : 'URL is required';
     valid = false;
   } else {
     try {
       new URL(createForm.url);
     } catch {
-      createErrors.url = 'Invalid URL';
+      createErrors.url = isChinese.value ? '网址格式无效' : 'Invalid URL';
       valid = false;
     }
   }
   if (createForm.events.length === 0) {
-    createErrors.events = 'Select at least one event';
+    createErrors.events = isChinese.value ? '请至少选择一个事件' : 'Select at least one event';
     valid = false;
   }
 
@@ -138,10 +141,10 @@ async function handleCreateWebhook() {
       events: createForm.events as CreateWebhookInput['events'],
     };
     await webhooksStore.createWebhook(input);
-    toast.success('Webhook created');
+    toast.success('Webhook 已创建');
   } catch (error) {
     console.error('Failed to create webhook:', error);
-    toast.error('Failed to create webhook');
+    toast.error('创建 Webhook 失败');
   }
 }
 
@@ -164,22 +167,22 @@ function validateEditForm(): boolean {
   editErrors.events = '';
 
   if (!editForm.name.trim()) {
-    editErrors.name = 'Name is required';
+    editErrors.name = isChinese.value ? '请输入名称' : 'Name is required';
     valid = false;
   }
   if (!editForm.url.trim()) {
-    editErrors.url = 'URL is required';
+    editErrors.url = isChinese.value ? '请输入网址' : 'URL is required';
     valid = false;
   } else {
     try {
       new URL(editForm.url);
     } catch {
-      editErrors.url = 'Invalid URL';
+      editErrors.url = isChinese.value ? '网址格式无效' : 'Invalid URL';
       valid = false;
     }
   }
   if (editForm.events.length === 0) {
-    editErrors.events = 'Select at least one event';
+    editErrors.events = isChinese.value ? '请至少选择一个事件' : 'Select at least one event';
     valid = false;
   }
 
@@ -199,10 +202,10 @@ async function handleUpdateWebhook() {
       isActive: editForm.isActive,
     };
     await webhooksStore.updateWebhook(editingWebhookId.value, input);
-    toast.success('Webhook updated');
+    toast.success('Webhook 已更新');
   } catch (error) {
     console.error('Failed to update webhook:', error);
-    toast.error('Failed to update webhook');
+    toast.error('更新 Webhook 失败');
   }
 }
 
@@ -210,10 +213,10 @@ async function handleTestWebhook(webhook: Webhook) {
   testingId.value = webhook.id;
   try {
     await webhooksStore.testWebhook(webhook.id);
-    toast.success('Test event sent');
+    toast.success('测试事件已发送');
   } catch (error) {
     console.error('Failed to test webhook:', error);
-    toast.error('Failed to send test event');
+    toast.error('发送测试事件失败');
   } finally {
     testingId.value = null;
   }
@@ -221,17 +224,19 @@ async function handleTestWebhook(webhook: Webhook) {
 
 function confirmDelete(webhook: Webhook) {
   confirmDialogConfig.value = {
-    title: 'Delete Webhook',
-    message: `Are you sure you want to delete "${webhook.name}"? This action cannot be undone.`,
-    confirmText: 'Delete Webhook',
+    title: isChinese.value ? '删除 Webhook' : 'Delete Webhook',
+    message: isChinese.value
+      ? `确定要删除“${webhook.name}”吗？此操作无法撤销。`
+      : `Are you sure you want to delete "${webhook.name}"? This action cannot be undone.`,
+    confirmText: isChinese.value ? '删除 Webhook' : 'Delete Webhook',
     variant: 'destructive',
     onConfirm: async () => {
       try {
         await webhooksStore.deleteWebhook(webhook.id);
-        toast.success('Webhook deleted');
+        toast.success('Webhook 已删除');
       } catch (error) {
         console.error('Failed to delete webhook:', error);
-        toast.error('Failed to delete webhook');
+        toast.error('删除 Webhook 失败');
       }
     },
   };
@@ -257,7 +262,7 @@ function toggleEditEvent(event: string) {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-GB', {
+  return new Date(dateString).toLocaleDateString(isChinese.value ? 'zh-CN' : 'en-GB', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -270,7 +275,19 @@ function truncateUrl(url: string, maxLen = 40): string {
 }
 
 function formatEventName(event: string): string {
-  return event.replace('.', ' ');
+  if (!isChinese.value) return event.replace('.', ' ');
+  const labels: Record<string, string> = {
+    'page.created': '页面创建', 'page.updated': '页面更新', 'page.deleted': '页面删除',
+    'database.created': '数据库创建', 'database.updated': '数据库更新', 'database.deleted': '数据库删除',
+    'comment.created': '评论创建', 'comment.resolved': '评论已解决',
+    'member.added': '成员加入', 'member.removed': '成员移除', 'backup.completed': '备份完成',
+  };
+  return labels[event] ?? event.replace('.', ' ');
+}
+
+function eventCategoryLabel(label: string): string {
+  if (!isChinese.value) return label;
+  return ({ Pages: '页面', Databases: '数据库', Comments: '评论', Members: '成员', System: '系统' } as Record<string, string>)[label] ?? label;
 }
 </script>
 
@@ -278,9 +295,9 @@ function formatEventName(event: string): string {
   <div class="webhooks-page">
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Webhooks</h1>
+        <h1 class="page-title">{{ isChinese ? 'Webhook 管理' : 'Webhooks' }}</h1>
         <p class="page-description">
-          Send real-time notifications to external services when events occur
+          {{ isChinese ? '事件发生时向外部服务发送实时通知' : 'Send real-time notifications to external services when events occur' }}
         </p>
       </div>
       <button class="btn-primary" :disabled="webhooksStore.creating" @click="openCreateModal">
@@ -311,7 +328,7 @@ function formatEventName(event: string): string {
             stroke-linecap="round"
           />
         </svg>
-        {{ webhooksStore.creating ? 'Creating...' : 'Create Webhook' }}
+        {{ webhooksStore.creating ? (isChinese ? '正在创建...' : 'Creating...') : (isChinese ? '创建 Webhook' : 'Create Webhook') }}
       </button>
     </div>
 
@@ -320,12 +337,12 @@ function formatEventName(event: string): string {
       <table class="data-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>URL</th>
-            <th>Events</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th class="actions-col">Actions</th>
+            <th>{{ isChinese ? '名称' : 'Name' }}</th>
+            <th>{{ isChinese ? '网址' : 'URL' }}</th>
+            <th>{{ isChinese ? '事件' : 'Events' }}</th>
+            <th>{{ isChinese ? '状态' : 'Status' }}</th>
+            <th>{{ isChinese ? '创建时间' : 'Created' }}</th>
+            <th class="actions-col">{{ isChinese ? '操作' : 'Actions' }}</th>
           </tr>
         </thead>
         <tbody>
@@ -368,7 +385,7 @@ function formatEventName(event: string): string {
                   />
                   <circle cx="24" cy="24" r="2" fill="currentColor" />
                 </svg>
-                <span>No webhooks yet. Create your first webhook to get started.</span>
+                <span>{{ isChinese ? '暂无 Webhook。创建第一个 Webhook 即可开始。' : 'No webhooks yet' }}</span>
               </div>
             </td>
           </tr>
@@ -383,12 +400,12 @@ function formatEventName(event: string): string {
             </td>
             <td>
               <span class="events-count">
-                {{ webhook.events.length }} event{{ webhook.events.length !== 1 ? 's' : '' }}
+                {{ isChinese ? `${webhook.events.length} 个事件` : `${webhook.events.length} event${webhook.events.length !== 1 ? 's' : ''}` }}
               </span>
             </td>
             <td>
               <span class="badge" :class="webhook.isActive ? 'badge-success' : 'badge-inactive'">
-                {{ webhook.isActive ? 'Active' : 'Inactive' }}
+                {{ webhook.isActive ? (isChinese ? '已启用' : 'Active') : (isChinese ? '已停用' : 'Inactive') }}
               </span>
             </td>
             <td>
@@ -398,7 +415,7 @@ function formatEventName(event: string): string {
               <div class="actions">
                 <button
                   class="action-btn"
-                  title="Send test event"
+                  :title="isChinese ? '发送测试事件' : 'Send test event'"
                   :disabled="testingId === webhook.id"
                   @click="handleTestWebhook(webhook)"
                 >
@@ -431,7 +448,7 @@ function formatEventName(event: string): string {
                     />
                   </svg>
                 </button>
-                <button class="action-btn" title="Edit webhook" @click="openEditModal(webhook)">
+                <button class="action-btn" :title="isChinese ? '编辑 Webhook' : 'Edit webhook'" @click="openEditModal(webhook)">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path
                       d="M11.5 2.5L13.5 4.5L5 13H3V11L11.5 2.5Z"
@@ -444,7 +461,7 @@ function formatEventName(event: string): string {
                 </button>
                 <button
                   class="action-btn danger"
-                  title="Delete webhook"
+                  :title="isChinese ? '删除 Webhook' : 'Delete webhook'"
                   @click="confirmDelete(webhook)"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -478,24 +495,24 @@ function formatEventName(event: string): string {
     <!-- Create Webhook Modal -->
     <BaseModal :open="showCreateModal" @close="showCreateModal = false">
       <div class="webhook-modal">
-        <h2 class="modal-title">Create Webhook</h2>
-        <p class="modal-description">Configure an endpoint to receive event notifications.</p>
+        <h2 class="modal-title">创建 Webhook</h2>
+          <p class="modal-description">配置一个用于接收事件通知的地址。</p>
 
         <div class="form-field">
-          <label class="field-label" for="create-name">Name</label>
+          <label class="field-label" for="create-name">名称</label>
           <input
             id="create-name"
             v-model="createForm.name"
             type="text"
             class="field-input"
-            placeholder="e.g. Slack Notifications"
+            placeholder="例如：Slack 通知"
             maxlength="100"
           />
           <p v-if="createErrors.name" class="field-error">{{ createErrors.name }}</p>
         </div>
 
         <div class="form-field">
-          <label class="field-label" for="create-url">URL</label>
+          <label class="field-label" for="create-url">网址</label>
           <input
             id="create-url"
             v-model="createForm.url"
@@ -507,10 +524,10 @@ function formatEventName(event: string): string {
         </div>
 
         <div class="form-field">
-          <span class="field-label">Events</span>
+          <span class="field-label">事件</span>
           <div class="events-grid">
             <div v-for="category in eventCategories" :key="category.label" class="event-category">
-              <span class="category-label">{{ category.label }}</span>
+              <span class="category-label">{{ eventCategoryLabel(category.label) }}</span>
               <label v-for="event in category.events" :key="event" class="event-checkbox">
                 <input
                   type="checkbox"
@@ -526,8 +543,8 @@ function formatEventName(event: string): string {
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="handleCreateWebhook">Create Webhook</button>
+          <button class="btn btn-secondary" @click="showCreateModal = false">取消</button>
+          <button class="btn btn-primary" @click="handleCreateWebhook">创建 Webhook</button>
         </div>
       </div>
     </BaseModal>
@@ -535,10 +552,10 @@ function formatEventName(event: string): string {
     <!-- Edit Webhook Modal -->
     <BaseModal :open="showEditModal" @close="showEditModal = false">
       <div class="webhook-modal">
-        <h2 class="modal-title">Edit Webhook</h2>
+        <h2 class="modal-title">编辑 Webhook</h2>
 
         <div class="form-field">
-          <label class="field-label" for="edit-name">Name</label>
+          <label class="field-label" for="edit-name">名称</label>
           <input
             id="edit-name"
             v-model="editForm.name"
@@ -550,7 +567,7 @@ function formatEventName(event: string): string {
         </div>
 
         <div class="form-field">
-          <label class="field-label" for="edit-url">URL</label>
+          <label class="field-label" for="edit-url">网址</label>
           <input id="edit-url" v-model="editForm.url" type="url" class="field-input" />
           <p v-if="editErrors.url" class="field-error">{{ editErrors.url }}</p>
         </div>
@@ -558,15 +575,15 @@ function formatEventName(event: string): string {
         <div class="form-field">
           <label class="toggle-label">
             <input v-model="editForm.isActive" type="checkbox" class="checkbox" />
-            <span>Active</span>
+            <span>启用</span>
           </label>
         </div>
 
         <div class="form-field">
-          <span class="field-label">Events</span>
+          <span class="field-label">事件</span>
           <div class="events-grid">
             <div v-for="category in eventCategories" :key="category.label" class="event-category">
-              <span class="category-label">{{ category.label }}</span>
+              <span class="category-label">{{ eventCategoryLabel(category.label) }}</span>
               <label v-for="event in category.events" :key="event" class="event-checkbox">
                 <input
                   type="checkbox"
@@ -582,8 +599,8 @@ function formatEventName(event: string): string {
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
-          <button class="btn btn-primary" @click="handleUpdateWebhook">Save Changes</button>
+          <button class="btn btn-secondary" @click="showEditModal = false">取消</button>
+          <button class="btn btn-primary" @click="handleUpdateWebhook">保存更改</button>
         </div>
       </div>
     </BaseModal>

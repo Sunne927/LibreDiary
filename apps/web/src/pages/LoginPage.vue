@@ -68,7 +68,7 @@ async function handleSubmit() {
         error.value = err.message;
       }
     } else {
-      error.value = 'An unexpected error occurred';
+      error.value = '发生了意外错误';
     }
   } finally {
     loading.value = false;
@@ -90,7 +90,7 @@ async function handleOAuthClick(provider: OAuthProvider) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to initiate OAuth login';
+      error.value = '无法启动第三方登录';
     }
   }
 }
@@ -120,8 +120,8 @@ async function handleOAuthClick(provider: OAuthProvider) {
         />
       </svg>
       <span>
-        This is a demo instance. Data resets every 24 hours. Use
-        <strong>demo@librediary.org</strong> / <strong>password</strong> to log in.
+        这是演示环境，数据每 24 小时重置。可使用
+        <strong>demo@librediary.org</strong> / <strong>password</strong> 登录。
       </span>
     </div>
 

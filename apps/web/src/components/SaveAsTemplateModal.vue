@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTemplatesStore } from '@/stores/templates';
 import { useToast } from '@/composables/useToast';
@@ -15,7 +15,7 @@ const emit = defineEmits<{
   saved: [];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const templatesStore = useTemplatesStore();
 const toast = useToast();
 
@@ -26,6 +26,15 @@ const submitting = ref(false);
 const error = ref<string | null>(null);
 
 const categories = ['Meeting', 'Project', 'Personal', 'Team', 'Other'];
+const categoryNames: Record<string, string> = {
+  Meeting: '会议',
+  Project: '项目',
+  Personal: '个人',
+  Team: '团队',
+  Other: '其他',
+};
+const isChinese = computed(() => locale.value === 'zh-CN');
+const text = (english: string, chinese: string) => (isChinese.value ? chinese : english);
 
 // Reset form when modal opens
 watch(
@@ -42,7 +51,7 @@ watch(
 
 async function handleSubmit() {
   if (!name.value.trim()) {
-    error.value = 'Name is required';
+    error.value = text('Name is required', '请输入模板名称');
     return;
   }
 
@@ -62,7 +71,7 @@ async function handleSubmit() {
     emit('close');
   } catch (e) {
     console.error('Failed to save template:', e);
-    error.value = 'Failed to save template. Please try again.';
+    error.value = text('Failed to save template. Please try again.', '模板保存失败，请重试。');
   } finally {
     submitting.value = false;
   }
@@ -75,7 +84,7 @@ async function handleSubmit() {
       <div class="modal" role="dialog" aria-labelledby="save-template-title">
         <div class="modal-header">
           <h2 id="save-template-title" class="modal-title">{{ $t('templates.saveAsTemplate') }}</h2>
-          <button class="close-btn" aria-label="Close" @click="$emit('close')">
+          <button class="close-btn" :aria-label="$t('common.close')" @click="$emit('close')">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path
                 d="M15 5L5 15M5 5L15 15"
@@ -91,35 +100,35 @@ async function handleSubmit() {
           <div v-if="error" class="error-message">{{ error }}</div>
 
           <div class="form-group">
-            <label class="form-label" for="template-name">Name</label>
+            <label class="form-label" for="template-name">{{ text('Name', '名称') }}</label>
             <input
               id="template-name"
               v-model="name"
               type="text"
               class="form-input"
-              placeholder="Template name"
+              :placeholder="text('Template name', '模板名称')"
               maxlength="200"
               required
             />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="template-description">Description</label>
+            <label class="form-label" for="template-description">{{ text('Description', '描述') }}</label>
             <textarea
               id="template-description"
               v-model="description"
               class="form-textarea"
-              placeholder="Describe what this template is for..."
+              :placeholder="text('Describe what this template is for...', '简要描述这个模板的用途...')"
               maxlength="1000"
               rows="3"
             />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="template-category">Category</label>
+            <label class="form-label" for="template-category">{{ text('Category', '分类') }}</label>
             <select id="template-category" v-model="category" class="form-select">
-              <option value="">No category</option>
-              <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+              <option value="">{{ text('No category', '不设置分类') }}</option>
+              <option v-for="cat in categories" :key="cat" :value="cat">{{ text(cat, categoryNames[cat] ?? cat) }}</option>
             </select>
           </div>
 
@@ -128,7 +137,7 @@ async function handleSubmit() {
               {{ $t('common.cancel') }}
             </button>
             <button type="submit" class="btn btn-primary" :disabled="submitting">
-              {{ submitting ? 'Saving...' : $t('templates.saveAsTemplate') }}
+              {{ submitting ? text('Saving...', '正在保存...') : $t('templates.saveAsTemplate') }}
             </button>
           </div>
         </form>

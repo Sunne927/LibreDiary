@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores';
 import { useOrganizationsStore } from '@/stores/organizations';
@@ -17,6 +18,9 @@ const authStore = useAuthStore();
 const orgsStore = useOrganizationsStore();
 const toast = useToast();
 const encryption = useEncryption();
+const { locale } = useI18n();
+const isChinese = computed(() => locale.value === 'zh-CN');
+const tr = (zh: string, en: string) => (isChinese.value ? zh : en);
 
 const loading = ref(true);
 const saving = ref(false);
@@ -70,14 +74,14 @@ async function handleEnableEncryption() {
 
   if (!encryption.isSetUp.value) {
     // Prompt for passphrase setup inline
-    const passphrase = prompt('Set your encryption passphrase:');
+    const passphrase = prompt(tr('设置加密口令：', 'Set encryption passphrase:'));
     if (!passphrase || passphrase.length < 8) {
-      toast.error('Passphrase must be at least 8 characters.');
+      toast.error(tr('加密口令至少需要 8 个字符。', 'Passphrase must be at least 8 characters.'));
       return;
     }
-    const confirm = prompt('Confirm your encryption passphrase:');
+    const confirm = prompt(tr('确认加密口令：', 'Confirm encryption passphrase:'));
     if (passphrase !== confirm) {
-      toast.error('Passphrases do not match.');
+      toast.error(tr('两次输入的加密口令不一致。', 'Passphrases do not match.'));
       return;
     }
 
@@ -90,14 +94,14 @@ async function handleEnableEncryption() {
       encryptionEnabling.value = false;
       return;
     } catch {
-      toast.error('Failed to set up encryption.');
+      toast.error(tr('加密设置失败。', 'Failed to set up encryption.'));
       encryptionEnabling.value = false;
       return;
     }
   }
 
   if (!encryption.isUnlocked.value) {
-    toast.error('Please unlock your encryption keys first.');
+    toast.error(tr('请先解锁加密密钥。', 'Unlock the encryption key first.'));
     return;
   }
 
@@ -142,7 +146,7 @@ async function confirmEnableEncryption() {
     if (err instanceof ApiError) {
       toast.error(err.message);
     } else {
-      toast.error('Failed to enable encryption.');
+      toast.error(tr('启用加密失败。', 'Failed to enable encryption.'));
     }
     encryptionEnabling.value = false;
   }
@@ -178,7 +182,7 @@ async function handleVerifyOtp() {
     if (err instanceof ApiError) {
       otpError.value = err.message;
     } else {
-      otpError.value = 'Invalid verification code. Please try again.';
+      otpError.value = tr('验证码无效，请重试。', 'Invalid verification code. Please try again.');
     }
   } finally {
     otpVerifying.value = false;
@@ -197,7 +201,7 @@ async function performEnableEncryption() {
     const publicKeyBytes = Uint8Array.from(atob(encData.publicKey), (c) => c.charCodeAt(0));
 
     const ownerPrivateKey = encryption.privateKey.value;
-    if (!ownerPrivateKey) throw new Error('Encryption not unlocked');
+    if (!ownerPrivateKey) throw new Error(tr('加密尚未解锁', 'Encryption is not unlocked'));
 
     const keyShare = await encryptForRecipient(workspaceKey, ownerPrivateKey, publicKeyBytes);
     const toBase64 = (arr: Uint8Array) => btoa(String.fromCharCode(...arr));
@@ -209,13 +213,13 @@ async function performEnableEncryption() {
     });
 
     await orgsStore.fetchOrganization();
-    toast.success('End-to-end encryption enabled for this workspace.');
+      toast.success(tr('此工作区已启用端到端加密。', 'End-to-end encryption is enabled for this workspace.'));
     showEncryptConfirm.value = false;
   } catch (err) {
     if (err instanceof ApiError) {
       toast.error(err.message);
     } else {
-      toast.error('Failed to enable encryption.');
+      toast.error(tr('启用加密失败。', 'Failed to enable encryption.'));
     }
   } finally {
     encryptionEnabling.value = false;
@@ -241,7 +245,7 @@ async function handleDisableEncryption() {
     if (err instanceof ApiError) {
       toast.error(err.message);
     } else {
-      toast.error('Failed to request encryption disable.');
+      toast.error(tr('提交关闭加密请求失败。', 'Failed to submit the request to disable encryption.'));
     }
   } finally {
     encryptionDisabling.value = false;
@@ -255,12 +259,12 @@ async function performDisableEncryption() {
   try {
     await encryptionService.disableWorkspaceEncryption(authStore.currentOrganizationId);
     await orgsStore.fetchOrganization();
-    toast.success('Encryption disabled. Data will be retained for 7 days.');
+      toast.success(tr('已关闭加密，数据将在 7 天内保留。', 'Encryption disabled. Data will be retained for 7 days.'));
   } catch (err) {
     if (err instanceof ApiError) {
       toast.error(err.message);
     } else {
-      toast.error('Failed to disable encryption.');
+      toast.error(tr('关闭加密失败。', 'Failed to disable encryption.'));
     }
   } finally {
     encryptionDisabling.value = false;
@@ -274,12 +278,12 @@ async function handleCancelDisable() {
   try {
     await encryptionService.cancelDisableEncryption(authStore.currentOrganizationId);
     await orgsStore.fetchOrganization();
-    toast.success('Encryption re-enabled. Data purge cancelled.');
+      toast.success(tr('已重新启用加密，数据清理已取消。', 'Encryption re-enabled. Data cleanup cancelled.'));
   } catch (err) {
     if (err instanceof ApiError) {
       toast.error(err.message);
     } else {
-      toast.error('Failed to cancel encryption disable.');
+      toast.error(tr('取消关闭加密失败。', 'Failed to cancel disabling encryption.'));
     }
   } finally {
     encryptionEnabling.value = false;
@@ -304,7 +308,7 @@ async function loadData() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to load organization settings';
+      error.value = tr('加载工作区设置失败', 'Failed to load organization settings');
     }
   } finally {
     loading.value = false;
@@ -341,7 +345,7 @@ async function handleSave() {
       allowedDomains: domainsArray,
       aiEnabled: form.value.aiEnabled,
     });
-    success.value = 'Settings saved successfully';
+    success.value = tr('设置已保存', 'Settings saved successfully');
     // Auto-hide success after 3s
     setTimeout(() => {
       success.value = null;
@@ -350,7 +354,7 @@ async function handleSave() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to save settings';
+    error.value = tr('保存设置失败', 'Failed to save settings');
     }
   } finally {
     saving.value = false;
@@ -381,7 +385,7 @@ async function handleLogoSelect(event: Event) {
     );
     await orgsStore.updateOrganization({ logoUrl: result.file.url });
   } catch {
-    toast.error('Failed to upload logo');
+    toast.error(tr('上传标志失败', 'Failed to upload logo'));
   } finally {
     logoUploading.value = false;
     logoProgress.value = 0;
@@ -393,7 +397,7 @@ async function removeLogo() {
   try {
     await orgsStore.updateOrganization({ logoUrl: null });
   } catch {
-    toast.error('Failed to remove logo');
+    toast.error(tr('移除标志失败', 'Failed to remove logo'));
   }
 }
 
@@ -426,7 +430,7 @@ async function handleDelete() {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to delete organization';
+      error.value = tr('删除工作区失败', 'Failed to delete organization');
     }
     saving.value = false;
   }
@@ -438,8 +442,8 @@ async function handleDelete() {
     <!-- Page Header -->
     <header class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Settings</h1>
-        <p class="page-description">Manage your organization's profile, security, and features</p>
+        <h1 class="page-title">{{ tr('设置', 'Settings') }}</h1>
+        <p class="page-description">{{ tr('管理工作区资料、安全选项和功能', "Manage your organization's profile, security, and features") }}</p>
       </div>
       <div v-if="currentOrg" class="org-badge">
         <span
@@ -465,7 +469,7 @@ async function handleDelete() {
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
-      <p>Loading settings...</p>
+      <p>{{ tr('正在加载设置...', 'Loading settings...') }}</p>
     </div>
 
     <template v-else>
@@ -535,14 +539,14 @@ async function handleDelete() {
               </svg>
             </div>
             <div class="section-header-text">
-              <h2 class="section-title">General</h2>
-              <p class="section-description">Basic organization information</p>
+              <h2 class="section-title">{{ tr('常规', 'General') }}</h2>
+              <p class="section-description">{{ tr('工作区的基本信息', 'Basic organization information') }}</p>
             </div>
           </div>
 
           <div class="section-content">
             <div class="field">
-              <label for="org-name" class="field-label">Organization name</label>
+              <label for="org-name" class="field-label">{{ tr('工作区名称', 'Organization name') }}</label>
               <input
                 id="org-name"
                 v-model="form.name"
@@ -555,7 +559,7 @@ async function handleDelete() {
 
             <!-- Logo Upload -->
             <div class="field logo-upload">
-              <span class="field-label">Logo</span>
+              <span class="field-label">{{ tr('标志', 'Logo') }}</span>
               <div class="logo-row">
                 <div class="logo-preview">
                   <img
@@ -574,7 +578,7 @@ async function handleDelete() {
                 </div>
                 <div v-if="logoUploading" class="logo-progress">
                   <div class="logo-progress-bar" :style="{ width: `${logoProgress}%` }"></div>
-                  <span class="logo-progress-text">Uploading...</span>
+                  <span class="logo-progress-text">{{ tr('正在上传...', 'Uploading...') }}</span>
                 </div>
                 <div v-else-if="orgsStore.canManageSettings" class="logo-actions">
                   <input
@@ -585,7 +589,7 @@ async function handleDelete() {
                     @change="handleLogoSelect"
                   />
                   <button type="button" class="logo-upload-btn" @click="openLogoFileDialog">
-                    Upload logo
+                    {{ tr('上传标志', 'Upload logo') }}
                   </button>
                   <button
                     v-if="currentOrg?.logoUrl"
@@ -593,14 +597,14 @@ async function handleDelete() {
                     class="logo-remove-btn"
                     @click="removeLogo"
                   >
-                    Remove logo
+                    {{ tr('移除标志', 'Remove logo') }}
                   </button>
                 </div>
               </div>
             </div>
 
             <div class="field">
-              <label for="org-slug" class="field-label">URL slug</label>
+              <label for="org-slug" class="field-label">{{ tr('网址标识', 'URL slug') }}</label>
               <div class="field-input-group">
                 <span class="field-prefix">{{ hostPrefix }}</span>
                 <input
@@ -612,7 +616,7 @@ async function handleDelete() {
                   :disabled="saving || !orgsStore.canManageSettings"
                 />
               </div>
-              <p class="field-hint">Used in URLs to identify your organization</p>
+              <p class="field-hint">{{ tr('用于在网址中标识你的工作区', 'Used in URLs to identify your organization') }}</p>
             </div>
           </div>
         </section>
@@ -638,16 +642,16 @@ async function handleDelete() {
               </svg>
             </div>
             <div class="section-header-text">
-              <h2 class="section-title">Security</h2>
-              <p class="section-description">Control who can join your organization</p>
+              <h2 class="section-title">{{ tr('安全', 'Security') }}</h2>
+              <p class="section-description">{{ tr('控制谁可以加入你的工作区', 'Control who can join your organization') }}</p>
             </div>
           </div>
 
           <div class="section-content">
             <div class="field">
               <label for="allowed-domains" class="field-label">
-                Email domain restriction
-                <span class="field-label-badge">Owner only</span>
+                {{ tr('邮箱域名限制', 'Email domain restriction') }}
+                <span class="field-label-badge">{{ tr('仅限所有者', 'OWNER ONLY') }}</span>
               </label>
               <input
                 id="allowed-domains"
@@ -658,8 +662,7 @@ async function handleDelete() {
                 :disabled="saving"
               />
               <p class="field-hint">
-                Only allow invites to email addresses from these domains. Separate multiple domains
-                with commas. Leave empty to allow any domain.
+                {{ tr('只允许邀请这些域名下的邮箱地址。多个域名请用逗号分隔，留空则不限制域名。', 'Only allow invitations to email addresses from these domains. Separate multiple domains with commas, or leave blank to allow any domain.') }}
               </p>
             </div>
           </div>
@@ -688,10 +691,8 @@ async function handleDelete() {
               </svg>
             </div>
             <div class="section-header-text">
-              <h2 class="section-title">End-to-End Encryption</h2>
-              <p class="section-description">
-                Encrypt all page content so only workspace members can read it
-              </p>
+              <h2 class="section-title">{{ tr('端到端加密', 'End-to-end encryption') }}</h2>
+              <p class="section-description">{{ tr('加密所有页面内容，只有工作区成员可以阅读', 'Encrypt all page content so only workspace members can read it') }}</p>
             </div>
           </div>
 
@@ -718,10 +719,9 @@ async function handleDelete() {
                 />
               </svg>
               <div>
-                <div class="encryption-status-title">Encryption is active</div>
+                <div class="encryption-status-title">{{ tr('加密已启用', 'Encryption enabled') }}</div>
                 <p class="encryption-status-text">
-                  All new pages in this workspace are end-to-end encrypted. Only members with the
-                  workspace key can decrypt content.
+                  {{ tr('工作区中的新页面都会进行端到端加密，只有拥有工作区密钥的成员才能解密内容。', 'New pages in this workspace will be encrypted end to end. Only members with the workspace key can decrypt content.') }}
                 </p>
               </div>
             </div>
@@ -732,14 +732,14 @@ async function handleDelete() {
                 :disabled="saving || encryptionDisabling"
                 @click="handleDisableEncryption"
               >
-                {{ encryptionDisabling ? 'Requesting...' : 'Disable encryption' }}
+                {{ encryptionDisabling ? tr('正在提交请求...', 'Submitting request...') : tr('关闭加密', 'Disable encryption') }}
               </button>
               <button
                 type="button"
                 class="btn-link btn-link--muted"
                 @click="showRecoveryModal = true"
               >
-                Forgot passphrase?
+                {{ tr('忘记加密口令？', 'Forgot your encryption passphrase?') }}
               </button>
             </div>
 
@@ -761,15 +761,10 @@ async function handleDelete() {
                 />
               </svg>
               <div>
-                <div class="encryption-status-title">Encryption disabled — grace period active</div>
+                <div class="encryption-status-title">{{ tr('加密已关闭，宽限期进行中', 'Encryption disabled; grace period in progress') }}</div>
                 <p class="encryption-status-text">
-                  Encrypted data will be permanently deleted in
-                  <strong
-                    >{{ gracePeriodDaysRemaining }} day{{
-                      gracePeriodDaysRemaining !== 1 ? 's' : ''
-                    }}</strong
-                  >. New pages are no longer encrypted. You can cancel this to re-enable encryption
-                  and keep all encrypted data.
+                  {{ tr('加密数据将在', 'Encrypted data will be permanently deleted in') }}
+                  <strong>{{ gracePeriodDaysRemaining }} {{ tr('天', 'days') }}</strong>{{ tr('后永久删除。新页面将不再加密。你可以取消关闭操作，重新启用加密并保留所有加密数据。', '. New pages will no longer be encrypted. You can cancel this operation, re-enable encryption, and keep all encrypted data.') }}
                 </p>
               </div>
             </div>
@@ -780,18 +775,17 @@ async function handleDelete() {
                 :disabled="saving || encryptionEnabling"
                 @click="handleCancelDisable"
               >
-                {{ encryptionEnabling ? 'Re-enabling...' : 'Cancel and re-enable encryption' }}
+                {{ encryptionEnabling ? tr('正在重新启用...', 'Re-enabling...') : tr('取消并重新启用加密', 'Cancel and re-enable encryption') }}
               </button>
             </div>
 
             <!-- State 3: Encryption not enabled -->
             <div v-else class="encryption-enable">
               <p class="encryption-enable-text">
-                Enable end-to-end encryption to protect page content. Once enabled, the server will
-                never have access to plaintext content.
+                {{ tr('启用端到端加密来保护页面内容。启用后，服务器将无法访问明文内容。', 'Enable end-to-end encryption to protect page content. Once enabled, the server cannot access plaintext content.') }}
               </p>
               <div class="encryption-enable-warnings">
-                <p class="encryption-warnings-title">The following features will be unavailable:</p>
+                <p class="encryption-warnings-title">{{ tr('启用加密后，以下功能将不可用：', 'The following features will be unavailable after enabling encryption:') }}</p>
                 <div class="encryption-warning">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path
@@ -807,7 +801,7 @@ async function handleDelete() {
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span>Server-side full-text search (client-side search still works)</span>
+                  <span>{{ tr('服务端全文搜索（客户端搜索仍可使用）', 'Server-side full-text search (client-side search remains available)') }}</span>
                 </div>
                 <div class="encryption-warning">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -824,7 +818,7 @@ async function handleDelete() {
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span>AI-powered writing (generate, expand, summarise, improve)</span>
+                  <span>{{ tr('AI 写作（生成、扩写、总结和润色）', 'AI writing (generation, expansion, summarisation, and polishing)') }}</span>
                 </div>
                 <div class="encryption-warning">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -841,7 +835,7 @@ async function handleDelete() {
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span>AI translation</span>
+                  <span>{{ tr('AI 翻译', 'AI translation') }}</span>
                 </div>
                 <div class="encryption-warning">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -858,7 +852,7 @@ async function handleDelete() {
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span>Public page sharing and share-token access</span>
+                  <span>{{ tr('公开页面分享和分享令牌访问', 'Public page sharing and share-token access') }}</span>
                 </div>
                 <div class="encryption-warning">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -875,7 +869,7 @@ async function handleDelete() {
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span>Server-side data exports (GDPR exports will contain ciphertext)</span>
+                  <span>{{ tr('服务端数据导出（GDPR 导出将包含密文）', 'Server-side data export (GDPR exports will contain ciphertext)') }}</span>
                 </div>
                 <div class="encryption-warning">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -892,7 +886,7 @@ async function handleDelete() {
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span>Server-side backups (backup content will be ciphertext)</span>
+                  <span>{{ tr('服务端备份（备份内容将为密文）', 'Server-side backups (backup contents will be encrypted)') }}</span>
                 </div>
               </div>
               <button
@@ -918,7 +912,7 @@ async function handleDelete() {
                     stroke-linecap="round"
                   />
                 </svg>
-                <span>Enable End-to-End Encryption</span>
+                <span>{{ tr('启用端到端加密', 'Enable end-to-end encryption') }}</span>
               </button>
             </div>
           </div>
@@ -953,24 +947,24 @@ async function handleDelete() {
                       />
                     </svg>
                   </div>
-                  <h2 class="modal-title">Enable Encryption</h2>
+                  <h2 class="modal-title">{{ tr('启用加密', 'Enable encryption') }}</h2>
                 </div>
 
                 <div class="modal-body">
                   <p class="modal-text">
-                    You are about to enable end-to-end encryption for
+                    {{ tr('即将为', 'You are about to enable encryption for') }}
                     <strong>{{ currentOrg?.name }}</strong
-                    >. The following features will become unavailable:
+                    >。{{ tr('以下功能将不可用：', 'The following features will be unavailable:') }}
                   </p>
                   <ul class="modal-list">
-                    <li>Server-side full-text search</li>
-                    <li>AI-powered writing and translation</li>
-                    <li>Public page sharing and share-token access</li>
-                    <li>Server-side data exports and backups of page content</li>
-                    <li>Members will need encryption keys to view content</li>
+                    <li>{{ tr('服务端全文搜索', 'Server-side full-text search') }}</li>
+                    <li>{{ tr('AI 写作和翻译', 'AI writing and translation') }}</li>
+                    <li>{{ tr('公开页面分享和分享令牌访问', 'Public page sharing and share-token access') }}</li>
+                    <li>{{ tr('服务端数据导出和页面内容备份', 'Server-side data export and page-content backups') }}</li>
+                    <li>{{ tr('成员需要加密密钥才能查看内容', 'Members will need the encryption key to view content') }}</li>
                   </ul>
                   <p class="modal-text modal-text--warning">
-                    Disabling encryption later will result in data loss after a 7-day grace period.
+                    {{ tr('之后关闭加密会在 7 天宽限期结束后导致数据丢失。', 'Disabling encryption later will cause data loss after the 7-day grace period.') }}
                   </p>
                 </div>
 
@@ -981,7 +975,7 @@ async function handleDelete() {
                     :disabled="encryptionEnabling"
                     @click="showEncryptConfirm = false"
                   >
-                    Cancel
+                    {{ tr('取消', 'Cancel') }}
                   </button>
                   <button
                     type="button"
@@ -989,7 +983,7 @@ async function handleDelete() {
                     :disabled="encryptionEnabling"
                     @click="confirmEnableEncryption"
                   >
-                    {{ encryptionEnabling ? 'Enabling...' : 'Yes, enable encryption' }}
+                    {{ encryptionEnabling ? tr('正在启用...', 'Enabling...') : tr('确认启用加密', 'Enable encryption') }}
                   </button>
                 </div>
               </div>
@@ -1022,20 +1016,18 @@ async function handleDelete() {
                       />
                     </svg>
                   </div>
-                  <h2 class="modal-title">Verify your identity</h2>
+                  <h2 class="modal-title">{{ tr('验证身份', 'Verify your identity') }}</h2>
                 </div>
 
                 <div class="modal-body">
                   <p class="modal-text">
-                    A 6-digit verification code has been sent to your email address. Enter it below
-                    to
-                    <strong>{{ otpAction === 'enable' ? 'enable' : 'disable' }}</strong>
-                    encryption for <strong>{{ currentOrg?.name }}</strong
-                    >.
+                    {{ tr('6 位验证码已发送到你的邮箱。请在下方输入验证码，以', 'A 6-digit verification code has been sent to your email. Enter it below to') }}
+                    <strong>{{ otpAction === 'enable' ? tr('启用', 'enable') : tr('停用', 'disable') }}</strong>
+                    {{ tr('工作区', 'encryption for workspace') }} <strong>{{ currentOrg?.name }}</strong>{{ tr(' 的加密功能。', '.') }}
                   </p>
 
                   <div class="field">
-                    <label class="field-label" for="otp-code">Verification code</label>
+                    <label class="field-label" for="otp-code">{{ tr('验证码', 'Verification code') }}</label>
                     <input
                       id="otp-code"
                       v-model="otpCode"
@@ -1049,7 +1041,7 @@ async function handleDelete() {
                       @keyup.enter="handleVerifyOtp"
                     />
                     <p v-if="otpError" class="field-error">{{ otpError }}</p>
-                    <p class="field-hint">This code expires in 10 minutes.</p>
+                    <p class="field-hint">{{ tr('验证码将在 10 分钟后过期。', 'The code expires in 10 minutes.') }}</p>
                   </div>
                 </div>
 
@@ -1060,7 +1052,7 @@ async function handleDelete() {
                     :disabled="otpVerifying"
                     @click="showOtpModal = false"
                   >
-                    Cancel
+                    {{ tr('取消', 'Cancel') }}
                   </button>
                   <button
                     type="button"
@@ -1068,7 +1060,7 @@ async function handleDelete() {
                     :disabled="otpCode.length !== 6 || otpVerifying"
                     @click="handleVerifyOtp"
                   >
-                    {{ otpVerifying ? 'Verifying...' : 'Verify and proceed' }}
+                    {{ otpVerifying ? tr('正在验证...', 'Verifying...') : tr('验证并继续', 'Verify and proceed') }}
                   </button>
                 </div>
               </div>
@@ -1104,17 +1096,17 @@ async function handleDelete() {
               </svg>
             </div>
             <div class="section-header-text">
-              <h2 class="section-title">Features</h2>
-              <p class="section-description">Enable or disable capabilities</p>
+              <h2 class="section-title">{{ tr('功能', 'Features') }}</h2>
+              <p class="section-description">{{ tr('启用或停用工作区功能', 'Enable or disable capabilities for your organization') }}</p>
             </div>
           </div>
 
           <div class="section-content">
             <div class="toggle-row">
               <div class="toggle-info">
-                <div class="toggle-label">AI-powered writing</div>
+                <div class="toggle-label">{{ tr('AI 写作', 'AI-powered writing') }}</div>
                 <p class="toggle-description">
-                  Enable intelligent writing assistance, suggestions, and content generation
+                  {{ tr('启用智能写作辅助、建议和内容生成', 'Enable AI-powered writing assistance, suggestions, and content generation') }}
                 </p>
               </div>
               <label class="toggle">
@@ -1153,7 +1145,7 @@ async function handleDelete() {
                 stroke-dashoffset="7"
               />
             </svg>
-            <span>{{ saving ? 'Saving...' : 'Save changes' }}</span>
+            <span>{{ saving ? tr('正在保存...', 'Saving...') : tr('保存更改', 'Save changes') }}</span>
           </button>
         </div>
       </form>
@@ -1175,15 +1167,14 @@ async function handleDelete() {
               stroke-linecap="round"
             />
           </svg>
-          <h2 class="danger-title">Danger Zone</h2>
+          <h2 class="danger-title">{{ tr('危险区域', 'Danger Zone') }}</h2>
         </div>
 
         <div class="danger-card">
           <div class="danger-content">
-            <h3 class="danger-action-title">Delete this organization</h3>
+            <h3 class="danger-action-title">{{ tr('删除此工作区', 'Delete this organization') }}</h3>
             <p class="danger-action-description">
-              Once deleted, all pages, members, and settings will be permanently removed. This
-              action cannot be undone.
+              {{ tr('删除后，所有页面、成员和设置都会被永久移除，此操作无法撤销。', 'This will permanently remove all pages, members, and settings. This action cannot be undone.') }}
             </p>
           </div>
           <button
@@ -1192,7 +1183,7 @@ async function handleDelete() {
             :disabled="saving"
             @click="openDeleteConfirm"
           >
-            Delete organization
+            {{ tr('删除工作区', 'Delete organization') }}
           </button>
         </div>
       </section>
@@ -1220,23 +1211,22 @@ async function handleDelete() {
                   />
                 </svg>
               </div>
-              <h2 class="modal-title">Delete Organization</h2>
+              <h2 class="modal-title">{{ tr('删除工作区', 'Delete Organization') }}</h2>
             </div>
 
             <div class="modal-body">
               <p class="modal-text">
-                This will permanently delete <strong>{{ currentOrg?.name }}</strong> and all
-                associated data including:
+                {{ tr('这将永久删除', 'This will permanently delete') }} <strong>{{ currentOrg?.name }}</strong>{{ tr(' 及其所有相关数据，包括：', ' and all associated data, including:') }}
               </p>
               <ul class="modal-list">
-                <li>All pages and their content</li>
-                <li>Member access and invitations</li>
-                <li>Organization settings</li>
+                <li>{{ tr('所有页面及其内容', 'All pages and their content') }}</li>
+                <li>{{ tr('成员访问权限和邀请', 'Member access and invitations') }}</li>
+                <li>{{ tr('工作区设置', 'Workspace settings') }}</li>
               </ul>
 
               <div class="field">
                 <label class="field-label">
-                  Type <code class="confirm-code">{{ currentOrg?.name }}</code> to confirm
+                  {{ tr('输入', 'Type') }} <code class="confirm-code">{{ currentOrg?.name }}</code> {{ tr('以确认', 'to confirm') }}
                 </label>
                 <input
                   v-model="deleteConfirmText"
@@ -1255,7 +1245,7 @@ async function handleDelete() {
                 :disabled="saving"
                 @click="closeDeleteConfirm"
               >
-                Cancel
+                {{ tr('取消', 'Cancel') }}
               </button>
               <button
                 type="button"
@@ -1263,7 +1253,7 @@ async function handleDelete() {
                 :disabled="deleteConfirmText !== currentOrg?.name || saving"
                 @click="handleDelete"
               >
-                {{ saving ? 'Deleting...' : 'I understand, delete this organization' }}
+                {{ saving ? tr('正在删除...', 'Deleting...') : tr('我了解，删除此工作区', 'I understand, delete this organization') }}
               </button>
             </div>
           </div>

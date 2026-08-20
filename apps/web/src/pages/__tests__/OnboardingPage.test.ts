@@ -77,7 +77,7 @@ describe('OnboardingPage', () => {
   it('renders step 1 with use-case selection by default', () => {
     const wrapper = mountPage();
 
-    expect(wrapper.find('h2').text()).toContain('How will you use LibreDiary?');
+    expect(wrapper.find('h2').text()).toContain('你准备如何使用 LibreDiary？');
     expect(wrapper.findAll('.use-case-card')).toHaveLength(3);
   });
 
@@ -85,7 +85,7 @@ describe('OnboardingPage', () => {
     const wrapper = mountPage();
 
     const stepLabels = wrapper.findAll('.step-label');
-    expect(stepLabels.map((s) => s.text())).toEqual(['Use Case', 'Profile', 'Get Started']);
+    expect(stepLabels.map((s) => s.text())).toEqual(['使用方式', '个人资料', '开始使用']);
   });
 
   it('disables Continue button when no use case is selected', () => {
@@ -121,7 +121,7 @@ describe('OnboardingPage', () => {
     await wrapper.findAll('.use-case-card')[0].trigger('click');
     await wrapper.find('.btn-primary').trigger('click');
 
-    expect(wrapper.find('h2').text()).toContain('Set up your profile');
+    expect(wrapper.find('h2').text()).toContain('完善个人资料');
   });
 
   // ---- Step 2: Profile ----
@@ -164,7 +164,7 @@ describe('OnboardingPage', () => {
     await wrapper.find('.btn-primary').trigger('click');
 
     await wrapper.find('.btn-secondary').trigger('click');
-    expect(wrapper.find('h2').text()).toContain('How will you use LibreDiary?');
+    expect(wrapper.find('h2').text()).toContain('你准备如何使用 LibreDiary？');
   });
 
   // ---- Step 3: Get Started ----
@@ -177,7 +177,7 @@ describe('OnboardingPage', () => {
     await wrapper.find('.btn-primary').trigger('click');
     await wrapper.find('.btn-primary').trigger('click');
 
-    expect(wrapper.find('h2').text()).toContain('Create your first page');
+    expect(wrapper.find('h2').text()).toContain('创建第一个页面');
     expect(wrapper.findAll('.action-option')).toHaveLength(2);
   });
 
@@ -263,6 +263,6 @@ describe('OnboardingPage', () => {
 
     const grid = wrapper.find('[role="radiogroup"]');
     expect(grid.exists()).toBe(true);
-    expect(grid.attributes('aria-label')).toBe('Use case selection');
+    expect(grid.attributes('aria-label')).toBe('使用方式选择');
   });
 });

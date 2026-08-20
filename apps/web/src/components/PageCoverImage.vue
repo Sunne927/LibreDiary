@@ -45,11 +45,11 @@ async function handleFileSelect(event: Event) {
       emit('update');
     } catch (e) {
       console.error('Failed to update cover:', e);
-      toast.error('Failed to update cover image');
+      toast.error('更新封面失败');
     }
   } catch (e) {
     console.error('Failed to upload cover:', e);
-    toast.error('Failed to upload cover image');
+    toast.error('上传封面失败');
   } finally {
     uploading.value = false;
     uploadProgress.value = 0;
@@ -65,7 +65,7 @@ async function removeCover() {
     emit('update');
   } catch (e) {
     console.error('Failed to remove cover:', e);
-    toast.error('Failed to remove cover image');
+    toast.error('移除封面失败');
   } finally {
     saving.value = false;
   }
@@ -93,7 +93,7 @@ async function removeCover() {
       <!-- Upload progress overlay -->
       <div v-if="uploading" class="cover-upload-progress">
         <div class="upload-progress-bar" :style="{ width: `${uploadProgress}%` }"></div>
-        <span class="upload-progress-text">Uploading...</span>
+        <span class="upload-progress-text">正在上传...</span>
       </div>
 
       <div class="cover-actions">
@@ -107,11 +107,11 @@ async function removeCover() {
               stroke-linejoin="round"
             />
           </svg>
-          <span>Change cover</span>
+          <span>更换封面</span>
         </button>
         <button
           class="cover-action-btn remove-cover-btn"
-          aria-label="Remove cover image"
+          aria-label="移除封面图片"
           @click="removeCover"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -127,7 +127,7 @@ async function removeCover() {
               stroke-width="1.25"
             />
           </svg>
-          <span>Remove</span>
+          <span>移除</span>
         </button>
       </div>
     </div>
@@ -137,9 +137,9 @@ async function removeCover() {
       <!-- Upload progress overlay when adding new cover -->
       <div v-if="uploading" class="cover-upload-progress cover-upload-progress--inline">
         <div class="upload-progress-bar" :style="{ width: `${uploadProgress}%` }"></div>
-        <span class="upload-progress-text">Uploading...</span>
+        <span class="upload-progress-text">正在上传...</span>
       </div>
-      <button v-else class="add-cover-btn" aria-label="Add cover image" @click="openFileDialog">
+      <button v-else class="add-cover-btn" aria-label="添加封面图片" @click="openFileDialog">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <rect
             x="2"
@@ -159,7 +159,7 @@ async function removeCover() {
             stroke-linejoin="round"
           />
         </svg>
-        <span>Add cover</span>
+        <span>添加封面</span>
       </button>
     </div>
   </div>

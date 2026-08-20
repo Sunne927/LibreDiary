@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { matchProvider, toEmbedUrl, getProviderLabel } from './embed/embedProviders';
 import type { EmbedProvider } from './embed/embedProviders';
 
@@ -34,9 +35,10 @@ const inputUrl = ref(props.node.attrs.url ?? '');
 const urlError = ref('');
 const iframeLoading = ref(true);
 const inputRef = ref<HTMLInputElement | null>(null);
+const { locale } = useI18n();
 
 const providerLabel = computed(() =>
-  props.node.attrs.provider ? getProviderLabel(props.node.attrs.provider) : 'Embed'
+  props.node.attrs.provider ? getProviderLabel(props.node.attrs.provider) : locale.value === 'zh-CN' ? '嵌入内容' : 'Embed'
 );
 
 onMounted(() => {
@@ -53,7 +55,9 @@ function handleSubmit() {
   const embedUrl = toEmbedUrl(raw);
 
   if (!embedUrl) {
-    urlError.value = 'Unsupported URL. Paste a YouTube, Vimeo, Figma, or Google Maps link.';
+    urlError.value = locale.value === 'zh-CN'
+      ? '暂不支持此链接，请粘贴 YouTube、Vimeo、Figma 或 Google 地图链接。'
+      : 'Unsupported URL. Paste a YouTube, Vimeo, Figma, or Google Maps link.';
     return;
   }
 
@@ -86,17 +90,17 @@ function onIframeLoad() {
         ref="inputRef"
         v-model="inputUrl"
         class="embed-url-input"
-        placeholder="Paste a YouTube, Vimeo, Figma, or Google Maps URL…"
+        placeholder="粘贴 YouTube、Vimeo、Figma 或 Google 地图链接…"
         @keydown="handleKeydown"
       />
       <div class="embed-edit-actions">
-        <button class="embed-submit-btn" @click="handleSubmit">Embed</button>
+        <button class="embed-submit-btn" @click="handleSubmit">{{ locale === 'zh-CN' ? '嵌入' : 'Embed' }}</button>
         <button v-if="node.attrs.url" class="embed-cancel-btn" @click="editing = false">
-          Cancel
+          {{ locale === 'zh-CN' ? '取消' : 'Cancel' }}
         </button>
       </div>
       <p v-if="urlError" class="embed-error" role="alert">{{ urlError }}</p>
-      <p class="embed-hint">Supported: YouTube, Vimeo, Figma, Google Maps</p>
+      <p class="embed-hint">{{ locale === 'zh-CN' ? '支持：YouTube、Vimeo、Figma、Google 地图' : 'Supported: YouTube, Vimeo, Figma, Google Maps' }}</p>
     </div>
 
     <!-- Preview mode -->
@@ -106,14 +110,14 @@ function onIframeLoad() {
         <button
           v-if="editor.isEditable"
           class="embed-edit-btn"
-          aria-label="Edit embed URL"
+          aria-label="编辑嵌入链接"
           @click="editing = true"
         >
-          Edit URL
+          {{ locale === 'zh-CN' ? '编辑链接' : 'Edit URL' }}
         </button>
       </div>
       <div class="embed-frame-wrapper">
-        <div v-if="iframeLoading" class="embed-loading" aria-label="Loading embed…">
+        <div v-if="iframeLoading" class="embed-loading" aria-label="正在加载嵌入内容…">
           <span class="embed-loading-spinner" />
         </div>
         <iframe
@@ -122,7 +126,7 @@ function onIframeLoad() {
           sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
           allowfullscreen
           loading="lazy"
-          title="Embedded content"
+          title="嵌入内容"
           @load="onIframeLoad"
         />
       </div>

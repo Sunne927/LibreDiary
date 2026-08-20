@@ -22,20 +22,20 @@ const useCases = [
   {
     id: 'personal',
     icon: 'journal',
-    title: 'Personal Notes',
-    description: 'Private journal, daily notes, and personal knowledge base.',
+    title: '个人笔记',
+    description: '私密日志、日常记录和个人知识库。',
   },
   {
     id: 'team',
     icon: 'team',
-    title: 'Team Wiki',
-    description: 'Shared documentation, meeting notes, and team knowledge.',
+    title: '知识库',
+    description: '整理文档、会议记录和长期积累的知识。',
   },
   {
     id: 'project',
     icon: 'project',
-    title: 'Project Tracker',
-    description: 'Tasks, databases, and project planning tools.',
+    title: '项目追踪',
+    description: '任务、数据库和项目规划工具。',
   },
 ] as const;
 
@@ -129,7 +129,7 @@ async function completeOnboarding() {
       }
     }, SUCCESS_REDIRECT_DELAY_MS);
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Something went wrong';
+    error.value = err instanceof Error ? err.message : '发生了意外错误';
   } finally {
     loading.value = false;
   }
@@ -154,7 +154,7 @@ onMounted(() => {
     </div>
 
     <!-- Theme Toggle -->
-    <button class="theme-toggle" :title="`Theme: ${theme}`" @click="toggleTheme">
+    <button class="theme-toggle" title="切换颜色主题" @click="toggleTheme">
       <svg v-if="theme === 'light'" width="20" height="20" viewBox="0 0 20 20" fill="none">
         <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5" />
         <path
@@ -217,7 +217,7 @@ onMounted(() => {
           </svg>
         </div>
         <h1 class="title">Welcome{{ authStore.user?.name ? `, ${authStore.user.name}` : '' }}</h1>
-        <p class="subtitle">Let's set up your workspace in a few quick steps.</p>
+        <p class="subtitle">用几个简单步骤设置你的工作区。</p>
       </div>
 
       <!-- Progress Indicator -->
@@ -257,7 +257,7 @@ onMounted(() => {
               </svg>
               <span v-else>{{ step }}</span>
             </div>
-            <span class="step-label">{{ ['Use Case', 'Profile', 'Get Started'][step - 1] }}</span>
+            <span class="step-label">{{ ['使用方式', '个人资料', '开始使用'][step - 1] }}</span>
           </div>
         </div>
       </div>
@@ -296,12 +296,12 @@ onMounted(() => {
                 <path d="M13 12V26" stroke="currentColor" stroke-width="1.5" />
               </svg>
             </div>
-            <h2>How will you use LibreDiary?</h2>
+            <h2>你准备如何使用 LibreDiary？</h2>
             <p class="step-description">
-              This helps us tailor your experience. You can always change this later.
+              选择一个方向，之后可以随时调整。
             </p>
 
-            <div class="use-case-grid" role="radiogroup" aria-label="Use case selection">
+            <div class="use-case-grid" role="radiogroup" aria-label="使用方式选择">
               <button
                 v-for="uc in useCases"
                 :key="uc.id"
@@ -434,22 +434,22 @@ onMounted(() => {
                 />
               </svg>
             </div>
-            <h2>Set up your profile</h2>
-            <p class="step-description">How would you like to be known in your workspace?</p>
+            <h2>完善个人资料</h2>
+            <p class="step-description">设置你在工作区中显示的名称。</p>
 
             <div class="form-grid">
               <div class="form-field">
-                <label for="displayName">Display name</label>
+                <label for="displayName">显示名称</label>
                 <input
                   id="displayName"
                   v-model="displayName"
                   type="text"
-                  placeholder="Your name"
+                  placeholder="你的名称"
                   maxlength="255"
                   autocomplete="name"
                   autofocus
                 />
-                <span class="field-hint">This is how you'll appear to other members.</span>
+                <span class="field-hint">这个名称会显示在你的页面和活动中。</span>
               </div>
             </div>
 
@@ -459,7 +459,7 @@ onMounted(() => {
                 {{ displayName.trim() ? displayName.trim()[0]?.toUpperCase() : '?' }}
               </div>
               <div class="preview-details">
-                <span class="preview-name">{{ displayName.trim() || 'Your Name' }}</span>
+                <span class="preview-name">{{ displayName.trim() || '你的名称' }}</span>
                 <span class="preview-email">{{ authStore.user?.email }}</span>
               </div>
             </div>
@@ -486,12 +486,12 @@ onMounted(() => {
                 />
               </svg>
             </div>
-            <h2>Create your first page</h2>
+            <h2>创建第一个页面</h2>
             <p class="step-description">
-              Start with a blank page or browse templates for inspiration.
+              从空白页面开始，或浏览模板寻找灵感。
             </p>
 
-            <div class="action-options" role="radiogroup" aria-label="First page action">
+            <div class="action-options" role="radiogroup" aria-label="首次操作">
               <button
                 type="button"
                 class="action-option"
@@ -512,8 +512,8 @@ onMounted(() => {
                   </svg>
                 </div>
                 <div class="action-option-text">
-                  <h3>Start with a blank page</h3>
-                  <p>Jump straight in and start writing.</p>
+                  <h3>从空白页面开始</h3>
+                  <p>直接开始记录内容。</p>
                 </div>
                 <div class="option-radio">
                   <div v-if="firstAction === 'blank'" class="radio-filled"></div>
@@ -544,8 +544,8 @@ onMounted(() => {
                   </svg>
                 </div>
                 <div class="action-option-text">
-                  <h3>Browse templates</h3>
-                  <p>Choose from ready-made templates to get started faster.</p>
+                  <h3>浏览模板</h3>
+                  <p>使用预置模板更快开始。</p>
                 </div>
                 <div class="option-radio">
                   <div v-if="firstAction === 'template'" class="radio-filled"></div>
@@ -580,8 +580,8 @@ onMounted(() => {
                 <div class="ring ring-3"></div>
               </div>
             </div>
-            <h2>You're all set!</h2>
-            <p class="step-description">Your workspace is ready. Taking you to your dashboard...</p>
+        <h2>设置完成！</h2>
+            <p class="step-description">工作区已准备完成，即将进入首页...</p>
           </div>
         </Transition>
       </div>

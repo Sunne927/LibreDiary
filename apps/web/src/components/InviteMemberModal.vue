@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { OrgRole } from '@librediary/shared';
 import { useOrganizationsStore } from '@/stores/organizations';
 import { useAuthStore } from '@/stores/auth';
@@ -18,6 +19,7 @@ const emit = defineEmits<{
 const orgsStore = useOrganizationsStore();
 const authStore = useAuthStore();
 const toast = useToast();
+const { locale } = useI18n();
 
 const email = ref('');
 const role = ref<OrgRole>('MEMBER');
@@ -69,18 +71,18 @@ watch(
 const availableRoles = computed<{ value: OrgRole; label: string }[]>(() => {
   if (orgsStore.isOwner) {
     return [
-      { value: 'MEMBER', label: 'Member' },
-      { value: 'ADMIN', label: 'Admin' },
+      { value: 'MEMBER', label: locale.value === 'zh-CN' ? '成员' : 'Member' },
+      { value: 'ADMIN', label: locale.value === 'zh-CN' ? '管理员' : 'Admin' },
     ];
   }
-  return [{ value: 'MEMBER', label: 'Member' }];
+  return [{ value: 'MEMBER', label: locale.value === 'zh-CN' ? '成员' : 'Member' }];
 });
 
 async function handleSubmit() {
   error.value = null;
 
   if (!email.value.trim()) {
-    error.value = 'Email is required';
+    error.value = locale.value === 'zh-CN' ? '请输入邮箱地址' : 'Email is required';
     return;
   }
 
@@ -90,14 +92,14 @@ async function handleSubmit() {
       email: email.value.trim(),
       role: role.value,
     });
-    toast.success(`Invitation sent to ${email.value.trim()}`);
+    toast.success(locale.value === 'zh-CN' ? `邀请已发送至 ${email.value.trim()}` : `Invitation sent to ${email.value.trim()}`);
     emit('invited');
     emit('close');
   } catch (err) {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to send invite';
+      error.value = locale.value === 'zh-CN' ? '发送邀请失败' : 'Failed to send invite';
     }
   } finally {
     submitting.value = false;
@@ -117,8 +119,8 @@ function close() {
       <div v-if="open" class="modal-overlay" @click.self="close">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
           <div class="modal-header">
-            <h2 id="invite-modal-title" class="modal-title">Invite Member</h2>
-            <button class="close-button" aria-label="Close" :disabled="submitting" @click="close">
+            <h2 id="invite-modal-title" class="modal-title">{{ locale === 'zh-CN' ? '邀请成员' : 'Invite Member' }}</h2>
+            <button class="close-button" :aria-label="$t('common.close')" :disabled="submitting" @click="close">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path
                   d="M4.5 4.5L13.5 13.5M4.5 13.5L13.5 4.5"
@@ -142,13 +144,13 @@ function close() {
             </div>
 
             <div class="form-group">
-              <label for="invite-email" class="form-label">Email address</label>
+              <label for="invite-email" class="form-label">邮箱地址</label>
               <input
                 id="invite-email"
                 v-model="email"
                 type="email"
                 class="form-input"
-                placeholder="colleague@example.com"
+                :placeholder="$t('share.addPeoplePlaceholder')"
                 :disabled="submitting"
                 autocomplete="email"
                 :aria-invalid="!!error"
@@ -166,14 +168,14 @@ function close() {
                   <circle cx="7" cy="10" r="0.75" fill="currentColor" />
                 </svg>
                 <span class="warning-text">
-                  This email domain is not in the allowed domains list. Allowed:
+                  {{ locale === 'zh-CN' ? '此邮箱域名不在允许列表中。允许的域名：' : 'This email domain is not in the allowed domains list. Allowed:' }}
                   <strong>{{ allowedDomains.join(', ') }}</strong>
                 </span>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="invite-role" class="form-label">Role</label>
+              <label for="invite-role" class="form-label">角色</label>
               <select
                 id="invite-role"
                 v-model="role"
@@ -186,15 +188,15 @@ function close() {
               </select>
               <p class="form-help">
                 <template v-if="role === 'ADMIN'">
-                  Admins can manage members and organization settings.
+                  {{ locale === 'zh-CN' ? '管理员可以管理成员和工作区设置。' : 'Admins can manage members and organization settings.' }}
                 </template>
-                <template v-else> Members can view and contribute to the organization. </template>
+                <template v-else>{{ locale === 'zh-CN' ? '成员可以查看并参与工作区内容。' : 'Members can view and contribute to workspace content.' }}</template>
               </p>
             </div>
 
             <div class="modal-actions">
               <button type="button" class="btn btn-secondary" :disabled="submitting" @click="close">
-                Cancel
+                {{ locale === 'zh-CN' ? '取消' : 'Cancel' }}
               </button>
               <button type="submit" class="btn btn-primary" :disabled="submitting">
                 <svg
@@ -215,7 +217,7 @@ function close() {
                     stroke-dashoffset="7"
                   />
                 </svg>
-                {{ submitting ? 'Sending...' : 'Send Invite' }}
+                {{ submitting ? (locale === 'zh-CN' ? '正在发送...' : 'Sending...') : (locale === 'zh-CN' ? '发送邀请' : 'Send Invite') }}
               </button>
             </div>
           </form>

@@ -61,6 +61,10 @@ const { mockWriteText } = vi.hoisted(() => ({
 
 vi.mock('@/services/writing.service', () => ({
   writeText: mockWriteText,
+  streamWriteText: vi.fn(async (orgId: string, action: string, text: string, callbacks: { onToken: (content: string) => void }) => {
+    const result = await mockWriteText(orgId, action, text);
+    callbacks.onToken(result.content);
+  }),
   WRITING_ACTIONS: ['generate', 'expand', 'summarise', 'improve'] as const,
 }));
 
@@ -255,7 +259,7 @@ describe('AiBubbleMenu', () => {
     wrapper.unmount();
   });
 
-  it('replaces selection with translated text', async () => {
+  it('shows a translation suggestion without changing the selection', async () => {
     const editor = createMockEditor('Hello, world!');
     mockTranslateText.mockResolvedValue({ translatedText: 'Hola, mundo!' });
 
@@ -270,10 +274,9 @@ describe('AiBubbleMenu', () => {
     await spanishBtn!.trigger('click');
     await flushPromises();
 
-    expect(editor.chain).toHaveBeenCalled();
-    const chainResult = editor.chain();
-    const focusResult = chainResult.focus();
-    expect(focusResult.insertContentAt).toHaveBeenCalledWith({ from: 0, to: 13 }, 'Hola, mundo!');
+    expect(wrapper.text()).toContain('Translation to Spanish');
+    expect(wrapper.text()).toContain('Hola, mundo!');
+    expect(editor.chain).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });
@@ -308,7 +311,7 @@ describe('AiBubbleMenu', () => {
     wrapper.unmount();
   });
 
-  it('shows success toast after translation', async () => {
+  it('does not show a success toast until a translation suggestion is accepted', async () => {
     const editor = createMockEditor('Hello');
     mockTranslateText.mockResolvedValue({ translatedText: 'Hola' });
 
@@ -323,7 +326,7 @@ describe('AiBubbleMenu', () => {
     await spanishBtn!.trigger('click');
     await flushPromises();
 
-    expect(mockToastSuccess).toHaveBeenCalledWith('Translated to Spanish');
+    expect(mockToastSuccess).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });
@@ -440,7 +443,7 @@ describe('AiBubbleMenu', () => {
     wrapper.unmount();
   });
 
-  it('replaces selection with AI content', async () => {
+  it('shows AI content as a suggestion without replacing the selection', async () => {
     const editor = createMockEditor('Short text');
     mockWriteText.mockResolvedValue({ content: 'Expanded content' });
 
@@ -451,13 +454,9 @@ describe('AiBubbleMenu', () => {
     await expandBtn!.trigger('click');
     await flushPromises();
 
-    expect(editor.chain).toHaveBeenCalled();
-    const chainResult = editor.chain();
-    const focusResult = chainResult.focus();
-    expect(focusResult.insertContentAt).toHaveBeenCalledWith(
-      { from: 0, to: 10 },
-      'Expanded content'
-    );
+    expect(wrapper.text()).toContain('Text expanded suggestion');
+    expect(wrapper.text()).toContain('Expanded content');
+    expect(editor.chain).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });
@@ -536,7 +535,7 @@ describe('AiBubbleMenu', () => {
     wrapper.unmount();
   });
 
-  it('shows success toast after expand', async () => {
+  it('shows a success toast after accepting an AI suggestion', async () => {
     const editor = createMockEditor('Short text');
     mockWriteText.mockResolvedValue({ content: 'Expanded text' });
 
@@ -547,12 +546,22 @@ describe('AiBubbleMenu', () => {
     await expandBtn!.trigger('click');
     await flushPromises();
 
-    expect(mockToastSuccess).toHaveBeenCalledWith('Text expanded');
+    await wrapper.find('.ai-suggestion-btn--accept').trigger('click');
+
+    expect(editor.chain).toHaveBeenCalled();
+    const chainResult = editor.chain();
+    const focusResult = chainResult.focus();
+    expect(focusResult.insertContentAt).toHaveBeenCalledWith(
+      { from: 0, to: 10 },
+      'Expanded text'
+    );
+    expect(mockToastSuccess).toHaveBeenCalledWith('AI suggestion accepted');
+    expect(wrapper.find('.ai-suggestion').exists()).toBe(false);
 
     wrapper.unmount();
   });
 
-  it('shows success toast after summarise', async () => {
+  it('shows a summary suggestion', async () => {
     const editor = createMockEditor('Long text');
     mockWriteText.mockResolvedValue({ content: 'Summary' });
 
@@ -565,12 +574,12 @@ describe('AiBubbleMenu', () => {
     await summariseBtn!.trigger('click');
     await flushPromises();
 
-    expect(mockToastSuccess).toHaveBeenCalledWith('Text summarised');
+    expect(wrapper.text()).toContain('Text summarised suggestion');
 
     wrapper.unmount();
   });
 
-  it('shows success toast after improve', async () => {
+  it('shows an improvement suggestion', async () => {
     const editor = createMockEditor('Bad text');
     mockWriteText.mockResolvedValue({ content: 'Better text' });
 
@@ -583,7 +592,7 @@ describe('AiBubbleMenu', () => {
     await improveBtn!.trigger('click');
     await flushPromises();
 
-    expect(mockToastSuccess).toHaveBeenCalledWith('Text improved');
+    expect(wrapper.text()).toContain('Text improved suggestion');
 
     wrapper.unmount();
   });
@@ -679,7 +688,7 @@ describe('AiBubbleMenu', () => {
     wrapper.unmount();
   });
 
-  it('inserts generated content at cursor position', async () => {
+  it('shows generated content as a suggestion at the cursor position', async () => {
     const editor = createMockEditor('');
     mockWriteText.mockResolvedValue({ content: 'Generated content' });
 
@@ -698,13 +707,9 @@ describe('AiBubbleMenu', () => {
     await submitBtn.trigger('click');
     await flushPromises();
 
-    expect(editor.chain).toHaveBeenCalled();
-    const chainResult = editor.chain();
-    const focusResult = chainResult.focus();
-    expect(focusResult.insertContentAt).toHaveBeenCalledWith(
-      { from: 0, to: 0 },
-      'Generated content'
-    );
+    expect(wrapper.text()).toContain('Generated suggestion');
+    expect(wrapper.text()).toContain('Generated content');
+    expect(editor.chain).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });
@@ -741,7 +746,7 @@ describe('AiBubbleMenu', () => {
     wrapper.unmount();
   });
 
-  it('shows "Content generated" success toast', async () => {
+  it('allows a generated suggestion to be rejected', async () => {
     const editor = createMockEditor('');
     mockWriteText.mockResolvedValue({ content: 'Generated content' });
 
@@ -760,7 +765,14 @@ describe('AiBubbleMenu', () => {
     await submitBtn.trigger('click');
     await flushPromises();
 
-    expect(mockToastSuccess).toHaveBeenCalledWith('Content generated');
+    expect(wrapper.find('.ai-suggestion').exists()).toBe(true);
+    const rejectButton = wrapper
+      .findAll('.ai-suggestion-btn')
+      .find((button) => button.text() === 'Reject');
+    await rejectButton!.trigger('click');
+
+    expect(wrapper.find('.ai-suggestion').exists()).toBe(false);
+    expect(editor.chain).not.toHaveBeenCalled();
 
     wrapper.unmount();
   });

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDatabasesStore } from '@/stores';
 
 const databasesStore = useDatabasesStore();
+const { locale } = useI18n();
 
 type CalendarMode = 'month' | 'week' | 'day';
 
@@ -24,11 +26,13 @@ const currentYear = computed(() => currentDate.value.getFullYear());
 const currentMonth = computed(() => currentDate.value.getMonth());
 
 const monthLabel = computed(() => {
-  const formatter = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
+  const formatter = new Intl.DateTimeFormat(locale.value === 'zh-CN' ? 'zh-CN' : 'en-GB', { month: 'long', year: 'numeric' });
   return formatter.format(currentDate.value);
 });
 
-const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const weekdays = computed(() => locale.value === 'zh-CN'
+  ? ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+  : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
 
 interface CalendarDay {
   date: Date;
@@ -275,12 +279,12 @@ function onEventDragEnd() {
           <path d="M6 1.5V4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
           <path d="M14 1.5V4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
         </svg>
-        <span class="date-property-label">Date property</span>
+        <span class="date-property-label">日期属性</span>
         <select
           class="date-property-select"
           @change="setDateProperty(($event.target as HTMLSelectElement).value)"
         >
-          <option value="" disabled selected>Select a date property</option>
+          <option value="" disabled selected>选择日期属性</option>
           <option v-for="prop in dateProperties" :key="prop.id" :value="prop.id">
             {{ prop.name }}
           </option>
@@ -290,7 +294,7 @@ function onEventDragEnd() {
 
     <!-- Date property bar when configured -->
     <div v-else class="calendar-date-property-bar">
-      <span class="date-property-label">Date property</span>
+      <span class="date-property-label">日期属性</span>
       <select
         class="date-property-select"
         :value="datePropertyId"
@@ -318,7 +322,7 @@ function onEventDragEnd() {
               />
             </svg>
           </button>
-          <button class="calendar-nav-btn calendar-nav-today" @click="navigateToday">Today</button>
+          <button class="calendar-nav-btn calendar-nav-today" @click="navigateToday">今天</button>
           <button class="calendar-nav-btn calendar-nav-next" @click="navigateNext">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path
@@ -342,21 +346,21 @@ function onEventDragEnd() {
             :class="{ active: viewMode === 'month' }"
             @click="setViewMode('month')"
           >
-            Month
+            月
           </button>
           <button
             class="calendar-mode-btn calendar-mode-btn--week"
             :class="{ active: viewMode === 'week' }"
             @click="setViewMode('week')"
           >
-            Week
+            周
           </button>
           <button
             class="calendar-mode-btn calendar-mode-btn--day"
             :class="{ active: viewMode === 'day' }"
             @click="setViewMode('day')"
           >
-            Day
+            日
           </button>
         </div>
       </div>
@@ -441,7 +445,7 @@ function onEventDragEnd() {
           <div v-for="event in dayEvents" :key="event.rowId" class="calendar-event day-view-event">
             {{ event.title }}
           </div>
-          <div v-if="dayEvents.length === 0" class="day-view-empty">No events on this day</div>
+          <div v-if="dayEvents.length === 0" class="day-view-empty">当天没有事件</div>
         </div>
       </div>
     </div>

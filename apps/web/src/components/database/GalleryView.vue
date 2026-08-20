@@ -89,13 +89,13 @@ async function setCardSize(size: string) {
             stroke-linejoin="round"
           />
         </svg>
-        <span class="cover-property-label">Cover image</span>
+        <span class="cover-property-label">封面图片</span>
         <select
           class="cover-property-select"
           @change="setCoverProperty(($event.target as HTMLSelectElement).value)"
         >
-          <option value="" disabled selected>Select a URL property</option>
-          <option value="__none__">None</option>
+          <option value="" disabled selected>选择网址属性</option>
+          <option value="__none__">无</option>
           <option v-for="prop in urlProperties" :key="prop.id" :value="prop.id">
             {{ prop.name }}
           </option>
@@ -105,27 +105,27 @@ async function setCardSize(size: string) {
 
     <!-- Cover property bar when configured -->
     <div v-else class="gallery-cover-bar">
-      <span class="cover-property-label">Cover</span>
+      <span class="cover-property-label">封面</span>
       <select
         class="cover-property-select"
         :value="coverPropertyId"
         @change="setCoverProperty(($event.target as HTMLSelectElement).value)"
       >
-        <option value="__none__">None</option>
+        <option value="__none__">无</option>
         <option v-for="prop in urlProperties" :key="prop.id" :value="prop.id">
           {{ prop.name }}
         </option>
       </select>
       <span class="bar-separator"></span>
-      <span class="cover-property-label">Size</span>
+      <span class="cover-property-label">尺寸</span>
       <select
         class="card-size-select"
         :value="cardSize"
         @change="setCardSize(($event.target as HTMLSelectElement).value)"
       >
-        <option value="small">Small</option>
-        <option value="medium">Medium</option>
-        <option value="large">Large</option>
+        <option value="small">小</option>
+        <option value="medium">中</option>
+        <option value="large">大</option>
       </select>
     </div>
 

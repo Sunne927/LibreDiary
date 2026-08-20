@@ -21,7 +21,7 @@ const showConfirmDialog = ref(false);
 const confirmDialogConfig = ref({
   title: '',
   message: '',
-  confirmText: 'Confirm',
+  confirmText: '确认',
   variant: 'destructive' as 'default' | 'destructive',
   onConfirm: () => {},
 });

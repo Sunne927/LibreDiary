@@ -339,7 +339,7 @@ function getInputType(): string {
         <span v-else class="person-option-initials">{{ getPersonInitials(member.name) }}</span>
         <span class="person-option-name">{{ member.name }}</span>
       </button>
-      <div v-if="personMembers.length === 0" class="select-empty">No members found</div>
+      <div v-if="personMembers.length === 0" class="select-empty">暂无成员</div>
     </div>
 
     <!-- Relation dropdown -->
@@ -375,8 +375,8 @@ function getInputType(): string {
         </span>
         {{ row.title }}
       </button>
-      <div v-if="relationRows.length === 0" class="select-empty">No rows found</div>
-      <button class="relation-done" @mousedown.prevent="emit('save', value)">Done</button>
+      <div v-if="relationRows.length === 0" class="select-empty">暂无记录</div>
+      <button class="relation-done" @mousedown.prevent="emit('save', value)">完成</button>
     </div>
 
     <!-- Files dropdown -->
@@ -397,7 +397,7 @@ function getInputType(): string {
           </button>
         </div>
       </div>
-      <div v-if="localUploading" class="files-progress">Uploading…</div>
+      <div v-if="localUploading" class="files-progress">正在上传…</div>
       <input
         ref="fileInputRef"
         type="file"
@@ -416,7 +416,7 @@ function getInputType(): string {
         </svg>
         Upload file
       </button>
-      <button class="files-done-btn" @mousedown.prevent="emit('save', currentFiles)">Done</button>
+      <button class="files-done-btn" @mousedown.prevent="emit('save', currentFiles)">完成</button>
     </div>
 
     <!-- Recurrence dropdown -->
@@ -426,7 +426,7 @@ function getInputType(): string {
       class="recurrence-dropdown"
       :style="dropdownStyle"
     >
-      <div class="recurrence-section-label">Repeat</div>
+      <div class="recurrence-section-label">重复</div>
       <button
         v-for="opt in recurrenceOptions"
         :key="opt.rule"
@@ -514,7 +514,7 @@ function getInputType(): string {
         </span>
         {{ option }}
       </button>
-      <div v-if="getSelectOptions().length === 0" class="select-empty">No options configured</div>
+      <div v-if="getSelectOptions().length === 0" class="select-empty">尚未配置选项</div>
       <button
         v-if="type === 'MULTI_SELECT'"
         class="select-done"
@@ -531,14 +531,14 @@ function getInputType(): string {
         v-model="editValue"
         class="cell-input duration-input"
         type="text"
-        placeholder="e.g. 1h 30m 45s"
+        placeholder="例如：1 小时 30 分 45 秒"
         @blur="save"
         @keydown="handleKeydown"
       />
       <button
         class="duration-timer-btn"
-        aria-label="Start timer"
-        title="Start timer"
+        aria-label="开始计时"
+        title="开始计时"
         @mousedown.prevent="emit('startTimer')"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

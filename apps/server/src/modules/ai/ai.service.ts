@@ -19,6 +19,68 @@ export interface ChatCompletionOptions {
   maxTokens?: number;
 }
 
+export async function* chatCompletionStream(
+  messages: ChatMessage[],
+  opts?: ChatCompletionOptions
+): AsyncGenerator<string> {
+  const config = await getAiConfig();
+
+  if (!config.enabled) throw new Error('AI is disabled');
+  if (!config.apiKey) throw new Error('No API key configured');
+
+  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: opts?.model ?? config.model,
+      messages,
+      stream: true,
+      ...(opts?.temperature !== undefined && { temperature: opts.temperature }),
+      ...(opts?.maxTokens !== undefined && { max_tokens: opts.maxTokens }),
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    const body = await response.text();
+    throw new Error(`OpenRouter API error (${response.status}): ${body}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+      const events = buffer.split(/\r?\n\r?\n/);
+      buffer = events.pop() ?? '';
+
+      for (const event of events) {
+        const data = event
+          .split(/\r?\n/)
+          .filter((line) => line.startsWith('data:'))
+          .map((line) => line.slice(5).trim())
+          .join('');
+        if (!data || data === '[DONE]') continue;
+
+        const parsed = JSON.parse(data) as {
+          choices?: Array<{ delta?: { content?: string } }>;
+        };
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) yield content;
+      }
+
+      if (done) break;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export interface TestConnectionResult {
   success: boolean;
   message: string;

@@ -90,6 +90,63 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
 export type UploadProgressCallback = (loaded: number, total: number) => void;
 
+export interface StreamCallbacks {
+  onToken: (content: string) => void;
+  onComplete?: () => void;
+  onError?: (error: Error) => void;
+}
+
+async function streamPost(endpoint: string, body: unknown, callbacks: StreamCallbacks): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const csrfToken = getCsrfToken();
+  if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers,
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  captureCsrfToken(response);
+
+  if (!response.ok || !response.body) {
+    throw new ApiError('STREAM_ERROR', `Server returned HTTP ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+    const events = buffer.split(/\r?\n\r?\n/);
+    buffer = events.pop() ?? '';
+
+    for (const event of events) {
+      const data = event
+        .split(/\r?\n/)
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trim())
+        .join('');
+      if (!data) continue;
+      if (data === '[DONE]') {
+        callbacks.onComplete?.();
+        return;
+      }
+
+      const parsed = JSON.parse(data) as { content?: string; message?: string };
+      if (parsed.message) throw new ApiError('STREAM_ERROR', parsed.message);
+      if (parsed.content) callbacks.onToken(parsed.content);
+    }
+
+    if (done) {
+      callbacks.onComplete?.();
+      return;
+    }
+  }
+}
+
 export const api = {
   get<T>(endpoint: string): Promise<T> {
     return request<T>(endpoint, { method: 'GET' });
@@ -97,6 +154,10 @@ export const api = {
 
   post<T>(endpoint: string, body?: unknown): Promise<T> {
     return request<T>(endpoint, { method: 'POST', body });
+  },
+
+  streamPost(endpoint: string, body: unknown, callbacks: StreamCallbacks): Promise<void> {
+    return streamPost(endpoint, body, callbacks);
   },
 
   put<T>(endpoint: string, body?: unknown): Promise<T> {

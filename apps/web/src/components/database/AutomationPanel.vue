@@ -155,7 +155,7 @@ function buildPayload() {
 
 async function saveCreate() {
   if (!formName.value.trim()) {
-    error.value = 'Name is required';
+    error.value = '请输入名称';
     return;
   }
   saving.value = true;
@@ -164,7 +164,7 @@ async function saveCreate() {
     await databasesStore.createAutomation(buildPayload());
     back();
   } catch {
-    error.value = 'Failed to save automation';
+  error.value = '保存自动化规则失败';
   } finally {
     saving.value = false;
   }
@@ -172,7 +172,7 @@ async function saveCreate() {
 
 async function saveEdit() {
   if (!selectedAutomation.value || !formName.value.trim()) {
-    error.value = 'Name is required';
+    error.value = '请输入名称';
     return;
   }
   saving.value = true;
@@ -181,7 +181,7 @@ async function saveEdit() {
     await databasesStore.updateAutomation(selectedAutomation.value.id, buildPayload());
     back();
   } catch {
-    error.value = 'Failed to save automation';
+  error.value = '保存自动化规则失败';
   } finally {
     saving.value = false;
   }
@@ -250,21 +250,21 @@ function formatDate(iso: string) {
           </span>
         </div>
         <div class="ap-item-actions">
-          <button class="ap-icon-btn" title="View logs" @click="openLogs(auto)">
+          <button class="ap-icon-btn" title="查看日志" @click="openLogs(auto)">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <rect x="2" y="3" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.2" />
               <path d="M4 6H10" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
               <path d="M4 8.5H8" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
             </svg>
           </button>
-          <button class="ap-icon-btn" title="Edit" @click="openEdit(auto)">
+          <button class="ap-icon-btn" title="编辑" @click="openEdit(auto)">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
             </svg>
           </button>
           <button
             class="ap-icon-btn"
-            :title="auto.isEnabled ? 'Disable' : 'Enable'"
+            :title="auto.isEnabled ? '停用' : '启用'"
             @click="toggleEnabled(auto)"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -272,7 +272,7 @@ function formatDate(iso: string) {
               <circle :cx="auto.isEnabled ? 10 : 4" cy="7" r="2.5" fill="white" />
             </svg>
           </button>
-          <button class="ap-icon-btn ap-icon-btn--danger" title="Delete" @click="confirmDelete(auto)">
+          <button class="ap-icon-btn ap-icon-btn--danger" title="删除" @click="confirmDelete(auto)">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 4H12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
               <path d="M5 4V2.5H9V4" stroke="currentColor" stroke-width="1.2" />
@@ -288,14 +288,14 @@ function formatDate(iso: string) {
       <div v-if="error" class="ap-error">{{ error }}</div>
 
       <div class="ap-field">
-        <label class="ap-label">Name</label>
-        <input v-model="formName" class="ap-input" type="text" placeholder="Automation name" />
+        <label class="ap-label">名称</label>
+        <input v-model="formName" class="ap-input" type="text" placeholder="自动化名称" />
       </div>
 
-      <div class="ap-section-title">Trigger</div>
+      <div class="ap-section-title">触发条件</div>
 
       <div class="ap-field">
-        <label class="ap-label">When…</label>
+        <label class="ap-label">当…</label>
         <select v-model="formTriggerType" class="ap-select">
           <option v-for="t in triggerOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
         </select>
@@ -303,36 +303,36 @@ function formatDate(iso: string) {
       </div>
 
       <div v-if="formTriggerType === 'PROPERTY_UPDATED'" class="ap-field">
-        <label class="ap-label">Property</label>
+        <label class="ap-label">属性</label>
         <select v-model="formTriggerPropertyId" class="ap-select">
-          <option value="">Any property</option>
+          <option value="">任意属性</option>
           <option v-for="p in allProperties" :key="p.id" :value="p.id">{{ p.name }}</option>
         </select>
       </div>
 
       <div v-if="formTriggerType === 'PROPERTY_UPDATED' && formTriggerPropertyId" class="ap-field">
-        <label class="ap-label">Only when value is</label>
-        <input v-model="formTriggerMatchValue" class="ap-input" type="text" placeholder="Leave blank to fire on any change" />
+        <label class="ap-label">仅当值为</label>
+        <input v-model="formTriggerMatchValue" class="ap-input" type="text" placeholder="留空表示任意变更都会触发" />
       </div>
 
       <div v-if="formTriggerType === 'DATE_REACHED'" class="ap-field">
-        <label class="ap-label">Date property</label>
+        <label class="ap-label">日期属性</label>
         <select v-model="formTriggerPropertyId" class="ap-select">
-          <option value="">Select…</option>
+          <option value="">选择…</option>
           <option v-for="p in dateProperties" :key="p.id" :value="p.id">{{ p.name }}</option>
         </select>
       </div>
 
       <div v-if="formTriggerType === 'DATE_REACHED'" class="ap-field">
-        <label class="ap-label">Days before date</label>
+        <label class="ap-label">提前天数</label>
         <input v-model.number="formTriggerDaysBefore" class="ap-input" type="number" min="0" max="365" />
-        <span class="ap-hint">0 = on the date itself</span>
+        <span class="ap-hint">0 表示当天</span>
       </div>
 
-      <div class="ap-section-title">Action</div>
+      <div class="ap-section-title">执行操作</div>
 
       <div class="ap-field">
-        <label class="ap-label">Then…</label>
+        <label class="ap-label">然后…</label>
         <select v-model="formActionType" class="ap-select">
           <option v-for="a in actionOptions" :key="a.value" :value="a.value">{{ a.label }}</option>
         </select>
@@ -340,30 +340,30 @@ function formatDate(iso: string) {
 
       <div v-if="formActionType === 'UPDATE_PROPERTY'">
         <div class="ap-field">
-          <label class="ap-label">Property to update</label>
+          <label class="ap-label">要更新的属性</label>
           <select v-model="formActionPropertyId" class="ap-select">
-            <option value="">Select…</option>
+            <option value="">选择…</option>
             <option v-for="p in allProperties" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
         </div>
         <div class="ap-field">
-          <label class="ap-label">Set value to</label>
-          <input v-model="formActionValue" class="ap-input" type="text" placeholder="New value" />
+          <label class="ap-label">设置值为</label>
+          <input v-model="formActionValue" class="ap-input" type="text" placeholder="新值" />
         </div>
       </div>
 
       <div v-if="formActionType === 'SEND_NOTIFICATION'" class="ap-field">
-        <label class="ap-label">Message (optional)</label>
-        <input v-model="formActionMessage" class="ap-input" type="text" placeholder="Notification message" />
+          <label class="ap-label">消息（选填）</label>
+          <input v-model="formActionMessage" class="ap-input" type="text" placeholder="通知内容" />
       </div>
 
       <div v-if="formActionType === 'CREATE_PAGE'" class="ap-field">
-        <label class="ap-label">Page title</label>
-        <input v-model="formActionPageTitle" class="ap-input" type="text" placeholder="Automated Page" />
+        <label class="ap-label">页面标题</label>
+          <input v-model="formActionPageTitle" class="ap-input" type="text" placeholder="自动化页面" />
       </div>
 
       <div class="ap-form-actions">
-        <button class="ap-cancel-btn" :disabled="saving" @click="back">Cancel</button>
+        <button class="ap-cancel-btn" :disabled="saving" @click="back">取消</button>
         <button
           class="ap-save-btn"
           :disabled="saving"
@@ -376,8 +376,8 @@ function formatDate(iso: string) {
 
     <!-- LOGS VIEW -->
     <div v-else-if="view === 'logs'" class="ap-logs">
-      <div v-if="logsLoading" class="ap-empty">Loading logs…</div>
-      <div v-else-if="logs.length === 0" class="ap-empty">No logs yet for this automation.</div>
+      <div v-if="logsLoading" class="ap-empty">正在加载日志…</div>
+      <div v-else-if="logs.length === 0" class="ap-empty">此自动化还没有日志。</div>
       <div v-for="log in logs" :key="log.id" class="ap-log-row" :class="`ap-log-row--${log.status.toLowerCase()}`">
         <span class="ap-log-status">{{ formatStatus(log.status) }}</span>
         <span class="ap-log-date">{{ formatDate(log.createdAt) }}</span>

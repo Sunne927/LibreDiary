@@ -24,6 +24,10 @@ import Link from '@tiptap/extension-link';
 import { ImageUploadExtension } from './extensions/ImageUploadExtension';
 import { EmbedExtension } from './extensions/EmbedExtension';
 import Typography from '@tiptap/extension-typography';
+import { TextStyle, Color, FontFamily, FontSize } from '@tiptap/extension-text-style';
+import Highlight from '@tiptap/extension-highlight';
+import TextAlign from '@tiptap/extension-text-align';
+import { FormatPainter } from './extensions/FormatPainter';
 import { FootnoteExtension } from './extensions/FootnoteExtension';
 import { MermaidExtension } from './extensions/MermaidExtension';
 import { MathBlockExtension } from './extensions/MathBlockExtension';
@@ -268,6 +272,13 @@ function buildExtensions(
     }),
     EmbedExtension,
     Typography,
+    TextStyle,
+    Color,
+    FontFamily,
+    FontSize,
+    Highlight.configure({ multicolor: true }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    FormatPainter,
     Superscript,
     Subscript,
     FootnoteExtension,
@@ -551,7 +562,7 @@ defineExpose({
     <template v-if="editorMode === 'wysiwyg'">
       <EditorContent v-if="editor" :editor="editor" class="editor-content" />
       <div v-else class="editor-loading">
-        <span>Loading editor...</span>
+        <span>正在加载编辑器...</span>
       </div>
     </template>
     <template v-else>

@@ -24,7 +24,7 @@ onMounted(async () => {
     if (err instanceof ApiError) {
       error.value = err.message;
     } else {
-      error.value = 'Failed to verify email. Please try again.';
+      error.value = '邮箱验证失败，请重试。';
     }
   } finally {
     loading.value = false;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AnnotationTool, AnnotationToolState } from './types';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   toolState: AnnotationToolState;
@@ -8,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:toolState': [state: AnnotationToolState];
 }>();
+const { locale } = useI18n();
 
 const tools: Array<{ id: AnnotationTool; label: string; icon: string }> = [
   { id: 'select', label: 'Select', icon: 'M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z' },
@@ -22,6 +24,15 @@ const tools: Array<{ id: AnnotationTool; label: string; icon: string }> = [
     icon: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z',
   },
 ];
+const labels: Record<string, string> = {
+  Select: '选择',
+  Freehand: '手绘',
+  Rectangle: '矩形',
+  Ellipse: '椭圆',
+  Arrow: '箭头',
+  Text: '文字',
+  'Pin comment': '固定评论',
+};
 
 function selectTool(toolId: AnnotationTool) {
   emit('update:toolState', { ...props.toolState, activeTool: toolId });
@@ -39,7 +50,7 @@ function updateStrokeWidth(event: Event) {
 </script>
 
 <template>
-  <div class="annotation-toolbar" role="toolbar" aria-label="Annotation tools">
+  <div class="annotation-toolbar" role="toolbar" aria-label="标注工具">
     <!-- Tool buttons -->
     <div class="annotation-toolbar__tools">
       <button
@@ -48,7 +59,7 @@ function updateStrokeWidth(event: Event) {
         :data-tool="tool.id"
         class="annotation-toolbar__tool-btn"
         :class="{ 'annotation-toolbar__tool-btn--active': toolState.activeTool === tool.id }"
-        :aria-label="tool.label"
+        :aria-label="locale === 'zh-CN' ? labels[tool.label] : tool.label"
         :aria-pressed="toolState.activeTool === tool.id"
         @click="selectTool(tool.id)"
       >
@@ -77,7 +88,7 @@ function updateStrokeWidth(event: Event) {
           type="color"
           :value="toolState.strokeColour"
           class="annotation-toolbar__colour-input"
-          aria-label="Annotation colour"
+          aria-label="标注颜色"
           @input="updateColour"
         />
       </label>
@@ -92,7 +103,7 @@ function updateStrokeWidth(event: Event) {
         step="1"
         :value="toolState.strokeWidth"
         class="annotation-toolbar__range"
-        aria-label="Stroke width"
+        aria-label="线条宽度"
         @input="updateStrokeWidth"
       />
     </div>

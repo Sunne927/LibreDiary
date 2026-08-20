@@ -39,14 +39,14 @@ async function loadPage() {
   } catch (e: unknown) {
     if (e instanceof ApiError) {
       if (e.code === 'PAGE_NOT_FOUND') {
-        error.value = 'Page not found';
+        error.value = '页面不存在';
       } else if (e.code === 'PAGE_NOT_PUBLIC') {
-        error.value = 'This page is no longer public';
+        error.value = '此页面已不再公开';
       } else {
-        error.value = e.message || 'Failed to load page';
+        error.value = e.message || '加载页面失败';
       }
     } else {
-      error.value = 'Failed to load page';
+      error.value = '加载页面失败';
     }
     console.error(e);
   } finally {
@@ -101,7 +101,7 @@ function formatDate(dateString: string): string {
         </router-link>
         <div class="header-badge">
           <span class="badge-dot"></span>
-          <span>Public Page</span>
+          <span>公开页面</span>
         </div>
       </div>
     </header>
@@ -111,7 +111,7 @@ function formatDate(dateString: string): string {
       <div class="loading-orb">
         <div class="orb-inner"></div>
       </div>
-      <span class="loading-text">Loading page...</span>
+      <span class="loading-text">正在加载页面...</span>
     </div>
 
     <!-- Error State with gentle aesthetics -->
@@ -190,7 +190,7 @@ function formatDate(dateString: string): string {
     <!-- Footer -->
     <footer class="public-footer">
       <p class="footer-text">
-        Shared via <router-link to="/" class="footer-link">LibreDiary</router-link>
+        通过 <router-link to="/" class="footer-link">LibreDiary</router-link> 分享
       </p>
     </footer>
   </div>
