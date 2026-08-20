@@ -155,3 +155,6 @@ screenshots/
 
 # local graphify knowledge-graph output (not part of app)
 graphify-out/
+
+# local-only deploy runbook (server specifics, not for public repo)
+DEPLOY.local.md

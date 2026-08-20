@@ -20,6 +20,9 @@
 > [!WARNING]
 > **Active Development** — LibreDiary is under active development and has not yet reached a stable release. APIs, database schemas, and configuration formats may change between versions without prior notice. You may encounter incomplete features, unexpected behaviour, or breaking changes when upgrading. We recommend pinning to a specific version in production and reviewing the [changelog](CHANGELOG.md) before updating. Bug reports and feedback are very welcome — please [open an issue](https://github.com/Akaal-Creatives/LibreDiary/issues) if something breaks.
 
+> [!NOTE]
+> **这是 [LibreDiary](https://github.com/Akaal-Creatives/LibreDiary) 的自托管定制 Fork（by Sunne927）。** 在写作页移植了完整格式化工具栏、划词悬浮工具条与 AI 写作（继续/润色/总结/自定义/翻译，预览后写入）。定制说明、下载、安装、配置、构建与部署见 **[`docs/FORK.md`](docs/FORK.md)**。
+
 ## Overview
 
 LibreDiary is an open-source alternative to Notion, designed for complete data sovereignty. Unlike cloud-dependent tools, LibreDiary is engineered for self-hosting, ensuring your information remains private and accessible offline.
